@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -22,6 +22,9 @@ export default function Blog() {
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'published' | 'drafts'>('published')
+  const [search, setSearch] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchBlogs = async () => {
     setLoading(true)
@@ -29,19 +32,28 @@ export default function Blog() {
     const timer = setTimeout(() => controller.abort(), 5000)
     try {
       const filter = tab === 'published' ? 'published=eq.true' : 'published=eq.false'
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&order=created_at.desc`,
-        {
-          headers: {
-            apikey: ANON_KEY,
-            Authorization: `Bearer ${ANON_KEY}`,
-          },
-          signal: controller.signal,
-        }
-      )
+      let url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&order=created_at.desc`
+      if (searchQuery.trim()) {
+        url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&title=ilike.*${encodeURIComponent(searchQuery)}*&order=created_at.desc`
+      }
+      const res = await fetch(url, {
+        headers: {
+          apikey: ANON_KEY,
+          Authorization: `Bearer ${ANON_KEY}`,
+        },
+        signal: controller.signal,
+      })
       clearTimeout(timer)
       const data = await res.json()
-      setBlogs(Array.isArray(data) ? data : [])
+      let results = Array.isArray(data) ? data : []
+      // Tag filter is done client-side since cs. operator works differently
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase()
+        results = results.filter((b: Blog) =>
+          b.tags?.some((t: string) => t.toLowerCase().includes(q))
+        )
+      }
+      setBlogs(results)
     } catch {
       clearTimeout(timer)
       setBlogs([])
@@ -56,7 +68,16 @@ export default function Blog() {
     } else {
       fetchBlogs()
     }
-  }, [tab])
+  }, [tab, searchQuery])
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setSearch(val)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(val)
+    }, 300)
+  }
 
   const togglePublish = async (blog: Blog) => {
     await supabase.from('blogs').update({ published: !blog.published }).eq('id', blog.id)
@@ -103,12 +124,32 @@ export default function Blog() {
           )}
         </div>
 
+        {/* Search input */}
+        <div style={{ position: 'relative', marginBottom: '1.5rem', maxWidth: 400 }}>
+          <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>🔍</span>
+          <input
+            type="text"
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="搜索标题或标签..."
+            style={{
+              width: '100%', padding: '0.6rem 1rem 0.6rem 2.5rem',
+              border: '1px solid var(--border)', borderRadius: 12,
+              background: 'var(--bg-secondary)', color: 'var(--text)',
+              fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s',
+              boxSizing: 'border-box',
+            }}
+            onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+          />
+        </div>
+
         {loading ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem' }}>加载中...</div>
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem' }}>搜索中...</div>
         ) : blogs.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
-            <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>{tab === 'published' ? '📖' : '📝'}</p>
-            <p>{tab === 'published' ? '还没有已发布的文章' : '草稿箱是空的'}</p>
+            <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</p>
+            <p>{searchQuery ? '无结果' : (tab === 'published' ? '还没有已发布的文章' : '草稿箱是空的')}</p>
           </motion.div>
         ) : (
           <div className="item-list">
