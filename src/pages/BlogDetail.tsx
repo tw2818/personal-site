@@ -1,54 +1,52 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+
+const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
 
 export default function BlogDetail() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const [blog, setBlog] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  // Guard against auth-state-change re-renders interrupting the fetch
-  const mountedRef = useRef(true)
 
   useEffect(() => {
     if (!id) { setLoading(false); return }
-    mountedRef.current = true
-    const timer = setTimeout(() => {
-      if (mountedRef.current) {
-        console.log('[BlogDetail] fetch timeout - cancelling')
-        setLoading(false)
-      }
-    }, 8000)
+
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 5000)
 
     const doFetch = async () => {
-      console.log('[BlogDetail] fetch started, id:', id)
       try {
-        const { data, error } = await supabase
-          .from('blogs')
-          .select('*')
-          .eq('id', id)
-          .single()
-          .throwOnError()
-        console.log('[BlogDetail] fetch result:', data, 'error:', error)
-        if (mountedRef.current) {
-          setBlog(data)
-          setLoading(false)
-        }
-      } catch (err) {
-        console.error('[BlogDetail] fetch error:', err)
-        if (mountedRef.current) setLoading(false)
-      } finally {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/blogs?id=eq.${encodeURIComponent(id)}&select=*`,
+          {
+            headers: {
+              apikey: ANON_KEY,
+              Authorization: `Bearer ${ANON_KEY}`,
+            },
+            signal: controller.signal,
+          }
+        )
         clearTimeout(timer)
+        const data = await res.json()
+        if (data?.length > 0) {
+          setBlog(data[0])
+        }
+        setLoading(false)
+      } catch {
+        clearTimeout(timer)
+        setLoading(false)
       }
     }
     doFetch()
 
     return () => {
-      mountedRef.current = false
       clearTimeout(timer)
+      controller.abort()
     }
   }, [id])
 

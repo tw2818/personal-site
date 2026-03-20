@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+
+const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
 
 interface Blog {
   id: string
@@ -21,14 +23,30 @@ export default function Blog() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'published' | 'drafts'>('published')
 
-  const fetchBlogs = () => {
+  const fetchBlogs = async () => {
     setLoading(true)
-    if (tab === 'published') {
-      supabase.from('blogs').select('*').eq('published', true).order('created_at', { ascending: false })
-        .then(({ data }) => { setBlogs(data || []); setLoading(false) })
-    } else {
-      supabase.from('blogs').select('*').eq('published', false).order('created_at', { ascending: false })
-        .then(({ data }) => { setBlogs(data || []); setLoading(false) })
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 5000)
+    try {
+      const filter = tab === 'published' ? 'published=eq.true' : 'published=eq.false'
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&order=created_at.desc`,
+        {
+          headers: {
+            apikey: ANON_KEY,
+            Authorization: `Bearer ${ANON_KEY}`,
+          },
+          signal: controller.signal,
+        }
+      )
+      clearTimeout(timer)
+      const data = await res.json()
+      setBlogs(Array.isArray(data) ? data : [])
+    } catch {
+      clearTimeout(timer)
+      setBlogs([])
+    } finally {
+      setLoading(false)
     }
   }
 
