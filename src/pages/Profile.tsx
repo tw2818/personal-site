@@ -10,9 +10,18 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) { setLoading(false); return }
-    supabase.from('profiles').select('*').eq('id', user.id).single()
-      .then(({ data }) => { setProfile(data); setLoading(false) })
+    const loadProfile = async () => {
+      if (user) {
+        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+        setProfile(data)
+      } else {
+        // 游客：显示站长的公开资料
+        const { data } = await supabase.from('profiles').select('*').eq('github', 'tw2818').single()
+        setProfile(data)
+      }
+      setLoading(false)
+    }
+    loadProfile()
   }, [user])
 
   if (loading) return <div className="page" style={{ textAlign: 'center', padding: '6rem' }}>加载中...</div>
