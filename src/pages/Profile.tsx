@@ -15,7 +15,7 @@ export default function Profile() {
     const load = async () => {
       setLoading(true)
       // 始终显示站长的资料（tw2818）
-      const { data } = await supabase.from('profiles').select('*').eq('github', 'tw2818').single()
+      const { data } = await supabase.from('profiles').select('*').eq('github', 'twebefy28').single()
       setProfile(data)
       const adminId = data?.id
       if (adminId) {

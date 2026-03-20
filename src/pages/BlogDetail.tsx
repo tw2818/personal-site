@@ -12,9 +12,21 @@ export default function BlogDetail() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!id) return
-    supabase.from('blogs').select('*').eq('id', id).single()
-      .then(({ data }) => { setBlog(data); setLoading(false) })
+    if (!id) { setLoading(false); return }
+    let cancelled = false
+    const timer = setTimeout(() => { cancelled = true; setLoading(false) }, 8000)
+
+    const doFetch = async () => {
+      try {
+        const { data } = await supabase.from('blogs').select('*').eq('id', id).single()
+        if (!cancelled) { setBlog(data); setLoading(false) }
+      } catch {
+        if (!cancelled) setLoading(false)
+      } finally {
+        clearTimeout(timer)
+      }
+    }
+    doFetch()
   }, [id])
 
   if (loading) return <div className="page" style={{ textAlign: 'center', padding: '4rem' }}>加载中...</div>
