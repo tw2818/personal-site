@@ -19,7 +19,7 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
       if (containerRef.current && !editorRef.current) {
         const instance = new E({
           el: containerRef.current,
-          initialEditType: 'wysiwyg',
+          initialEditType: 'markdown',
           previewStyle: 'vertical',
           height: '500px',
           placeholder: placeholder || '',
