@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { uploadImage } from '../lib/storage'
-import { uploadImage } from '../lib/storage'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Settings() {
@@ -17,8 +16,6 @@ export default function Settings() {
   const [avatarError, setAvatarError] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [uploadingAvatar, setUploadingAvatar] = useState(false)
-  const [avatarError, setAvatarError] = useState('')
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -50,15 +47,6 @@ export default function Settings() {
     })
   }, [user])
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploadingAvatar(true)
-    setAvatarError('')
-    const url = await uploadImage(file)
-    if (url) { setAvatarUrl(url) } else { setAvatarError('上传失败，请重试') }
-    setUploadingAvatar(false)
-  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,7 +68,6 @@ export default function Settings() {
       <div className="section" style={{ maxWidth: 640 }}>
         <motion.h1 className="section-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>设置</motion.h1>
         <motion.p className="section-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>编辑你的个人资料</motion.p>
-
         <motion.form
           onSubmit={handleSave}
           initial={{ opacity: 0, y: 20 }}
@@ -113,7 +100,6 @@ export default function Settings() {
               )}
             </div>
           ))}
-
           <motion.button
             type="submit"
             disabled={saving}
