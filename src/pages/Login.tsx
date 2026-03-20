@@ -3,12 +3,10 @@ import { supabase } from '../lib/supabase'
 
 export default function Login() {
   const handleGitHubLogin = async () => {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
-      options: {
-        redirectTo: window.location.origin + '/auth/v1/callback',
-      },
     })
+    if (error) console.error('OAuth error:', error)
   }
 
   return (

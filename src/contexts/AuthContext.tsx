@@ -20,28 +20,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const code = params.get('code')
+    const initAuth = async () => {
+      try {
+        // Try to get session from URL params (OAuth callback)
+        const params = new URLSearchParams(window.location.search)
+        const code = params.get('code')
 
-    if (code) {
-      // Clean URL immediately
-      window.history.replaceState({}, '', window.location.pathname)
-      ;(supabase.auth as any).exchangeCodeForSession(code).then(({ data, error }: any) => {
-        if (!error && data?.session) {
-          setSession(data.session)
-          setUser(data.session.user)
+        if (code) {
+          // Clean URL first
+          window.history.replaceState({}, '', window.location.pathname)
+          const { data, error } = await (supabase.auth as any).exchangeCodeForSession(code)
+          if (error) throw error
+          if (data?.session) {
+            setSession(data.session)
+            setUser(data.session.user)
+            setLoading(false)
+            return
+          }
         }
-        setLoading(false)
-      }).catch(() => {
-        setLoading(false)
-      })
-    } else {
-      supabase.auth.getSession().then(({ data: { session } }) => {
+
+        // Normal session check
+        const { data: { session } } = await supabase.auth.getSession()
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)
-      })
+      } catch (err) {
+        console.error('Auth init error:', err)
+        setLoading(false)
+      }
     }
+
+    initAuth()
   }, [])
 
   useEffect(() => {
