@@ -14,8 +14,9 @@ export default function Profile() {
   useEffect(() => {
     const load = async () => {
       setLoading(true)
-      // 始终显示站长的资料（tw2818）
-      const { data } = await supabase.from('profiles').select('*').eq('github', 'twebefy28').single()
+      // Hardcode admin profile ID to avoid github lookup issues
+      const ADMIN_ID = '0f673692-97e2-4208-9af1-3b82f038a982'
+      const { data } = await supabase.from('profiles').select('*').eq('id', ADMIN_ID).single()
       setProfile(data)
       const adminId = data?.id
       if (adminId) {
