@@ -248,7 +248,7 @@ export default function Admin() {
           ))}
         </div>
 
-        {tab === 'settings' ? <SettingsTab /> : <UsersTab />}
+        {tab === 'settings' ? <SettingsTab key="settings" /> : <UsersTab key="users" />}
       </div>
     </div>
   )

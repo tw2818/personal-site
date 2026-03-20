@@ -13,33 +13,23 @@ export default function Profile() {
 
   useEffect(() => {
     const load = async () => {
-      if (user) {
-        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-        setProfile(data)
+      setLoading(true)
+      // 始终显示站长的资料（tw2818）
+      const { data } = await supabase.from('profiles').select('*').eq('github', 'tw2818').single()
+      setProfile(data)
+      const adminId = data?.id
+      if (adminId) {
         const [{ count: bc }, { count: pc }] = await Promise.all([
-          supabase.from('blogs').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('published', true),
-          supabase.from('projects').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          supabase.from('blogs').select('*', { count: 'exact', head: true }).eq('user_id', adminId).eq('published', true),
+          supabase.from('projects').select('*', { count: 'exact', head: true }).eq('user_id', adminId),
         ])
         setBlogCount(bc || 0)
         setProjectCount(pc || 0)
-      } else {
-        // 游客显示站长资料
-        const { data } = await supabase.from('profiles').select('*').eq('github', 'tw2818').single()
-        setProfile(data)
-        const adminId = data?.id
-        if (adminId) {
-          const [{ count: bc }, { count: pc }] = await Promise.all([
-            supabase.from('blogs').select('*', { count: 'exact', head: true }).eq('user_id', adminId).eq('published', true),
-            supabase.from('projects').select('*', { count: 'exact', head: true }).eq('user_id', adminId),
-          ])
-          setBlogCount(bc || 0)
-          setProjectCount(pc || 0)
-        }
       }
       setLoading(false)
     }
     load()
-  }, [user])
+  }, [])
 
   if (loading) return <div className="page" style={{ textAlign: 'center', padding: '6rem' }}>加载中...</div>
 
