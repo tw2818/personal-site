@@ -80,20 +80,21 @@ export default function Blog() {
                 transition={{ delay: i * 0.08, duration: 0.5 }}
                 whileHover={{ x: 6 }}
               >
-                <Link to={`/blog/${blog.id}`}>
-                  <div className="item">
-                    <span className="item-date">{new Date(blog.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit' })}</span>
-                    <div style={{ flex: 1 }}>
-                      <h3>{blog.title}</h3>
-                      {blog.tags?.length > 0 && (
-                        <div className="tags">
-                          {blog.tags.map(t => <span key={t} className="tag">{t}</span>)}
-                        </div>
-                      )}
-                    </div>
-                    <span className="item-arrow">→</span>
+                <div className="item" style={{ cursor: 'pointer' }} onClick={() => window.location.href = `/blog/${blog.id}`}>
+                  <span className="item-date">{new Date(blog.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit' })}</span>
+                  <div style={{ flex: 1 }}>
+                    <h3>{blog.title}</h3>
+                    {blog.tags?.length > 0 && (
+                      <div className="tags">
+                        {blog.tags.map(t => <span key={t} className="tag">{t}</span>)}
+                      </div>
+                    )}
                   </div>
-                </Link>
+                  <span className="item-arrow">→</span>
+                  {user?.user_metadata?.user_name === 'tw2818' && (
+                    <span onClick={(e) => { e.stopPropagation(); window.location.href = `/blog/${blog.id}/edit`; }} style={{ marginLeft: '0.5rem', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.85rem' }}>✏️</span>
+                  )}
+                </div>
               </motion.div>
             ))}
           </div>

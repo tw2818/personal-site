@@ -58,9 +58,10 @@ export default function Projects() {
                   {p.cover_url && <img src={p.cover_url} alt={p.name} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 10, marginBottom: '1rem' }} />}
                   <h3>{p.featured ? '⭐ ' : ''}{p.name}</h3>
                   <p>{p.description || '暂无描述'}</p>
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                     {p.github_url && <a href={p.github_url} target="_blank" rel="noreferrer" className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>🐙 源码</a>}
                     {p.demo_url && <a href={p.demo_url} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>🔗 演示</a>}
+                    {isAdmin && <a href={`/projects/${p.id}/edit`} className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>✏️ 编辑</a>}
                   </div>
                 </div>
               </motion.div>
