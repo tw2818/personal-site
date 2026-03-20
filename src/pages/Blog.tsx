@@ -32,7 +32,13 @@ export default function Blog() {
     }
   }
 
-  useEffect(() => { fetchBlogs() }, [tab])
+  useEffect(() => {
+    if (tab === 'drafts' && !isAdmin) {
+      setTab('published')
+    } else {
+      fetchBlogs()
+    }
+  }, [tab])
 
   const togglePublish = async (blog: Blog) => {
     await supabase.from('blogs').update({ published: !blog.published }).eq('id', blog.id)
@@ -47,10 +53,10 @@ export default function Blog() {
 
         {/* Tab switcher */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--border)', paddingBottom: 0 }}>
-          {[
+          {([
             { key: 'published', label: '📖 已发布' },
-            { key: 'drafts', label: '📝 草稿箱' },
-          ].map(t => (
+            ...(isAdmin ? [{ key: 'drafts', label: '📝 草稿箱' }] : []),
+          ]).map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key as any)}
