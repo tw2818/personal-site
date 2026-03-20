@@ -3,8 +3,6 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { directWrite } from '../lib/apiWrite'
 import { supabase } from '../lib/supabase'
-'
-import { useAuth } from '../contexts/AuthContext'
 
 interface UserProfile {
   id: string
@@ -109,7 +107,6 @@ function UsersTab() {
   const [search, setSearch] = useState('')
 
   const { accessToken } = useAuth()
-  const { accessToken } = useAuth()
   const fetchUsers = async () => {
     setLoading(true)
     const { data } = await (supabase as any).rpc('get_users_admin')
@@ -123,8 +120,8 @@ function UsersTab() {
     if (!confirm(`确定删除用户 ${name}？这将同时删除其所有数据。`)) return
     setDeleting(id)
     await directWrite('DELETE', 'profiles', undefined, `id=eq.${id}`, accessToken || '')
-    await directWrite('DELETE', 'blogs', undefined, `user_id=eq.${id}`, accessToken)
-    await directWrite('DELETE', 'projects', undefined, `user_id=eq.${id}`, accessToken)
+    await directWrite('DELETE', 'blogs', undefined, `user_id=eq.${id}`, accessToken || '')
+    await directWrite('DELETE', 'projects', undefined, `user_id=eq.${id}`, accessToken || '')
     setDeleting(null)
     fetchUsers()
   }

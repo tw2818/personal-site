@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
-import { directWrite, useApiWrite } from '../lib/apiWrite'
+import { directWrite } from '../lib/apiWrite'
 import RichEditor from '../components/RichEditor'
 
 export default function EditBlog() {
   const { id } = useParams<{ id: string }>()
-  const { user, accessToken } = useAuth()
+  const { accessToken } = useAuth()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
