@@ -20,36 +20,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const exchangeCode = async () => {
-      const code = sessionStorage.getItem('supabase_code')
-      if (code) {
-        sessionStorage.removeItem('supabase_code')
-        const { data, error } = await (supabase.auth as any).exchangeCodeForSession(code)
-        if (!error && data) {
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+
+    if (code) {
+      // Clean URL immediately
+      window.history.replaceState({}, '', window.location.pathname)
+      ;(supabase.auth as any).exchangeCodeForSession(code).then(({ data, error }: any) => {
+        if (!error && data?.session) {
           setSession(data.session)
-          setUser(data.session?.user ?? null)
-          setLoading(false)
-          return
+          setUser(data.session.user)
         }
-      }
-
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
+        setLoading(false)
+      }).catch(() => {
+        setLoading(false)
+      })
+    } else {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session)
+        setUser(session?.user ?? null)
+        setLoading(false)
+      })
     }
-
-    exchangeCode()
   }, [])
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
-      if (!loading) setLoading(false)
     })
     return () => subscription.unsubscribe()
-  }, [loading])
+  }, [])
 
   return (
     <AuthContext.Provider value={{ user, session, loading }}>

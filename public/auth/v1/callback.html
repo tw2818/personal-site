@@ -3,6 +3,7 @@
 <head><title>Auth callback</title></head>
 <body>
 <script>
+  // Just pass the auth code to the main app via query string and redirect
   var params = new URLSearchParams(window.location.search);
   var code = params.get('code');
   var state = params.get('state');
@@ -11,9 +12,8 @@
   if (error) {
     window.location.href = '/?auth_error=' + encodeURIComponent(error);
   } else if (code) {
-    sessionStorage.setItem('supabase_code', code);
-    if (state) sessionStorage.setItem('supabase_state', state);
-    window.location.href = '/';
+    // Pass code to React app via hash or just redirect with the code in URL
+    window.location.href = '/?code=' + encodeURIComponent(code) + (state ? '&state=' + encodeURIComponent(state) : '');
   } else {
     window.location.href = '/';
   }
