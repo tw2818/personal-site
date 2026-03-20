@@ -38,7 +38,12 @@ export default function Navbar() {
         </li>
         {user ? (
           <>
-            {user.user_metadata?.user_name === 'tw2818' && <li><Link to="/settings">设置</Link></li>}
+            {user.user_metadata?.user_name === 'tw2818' && (
+              <>
+                <li><Link to="/settings">设置</Link></li>
+                <li><Link to="/admin">管理</Link></li>
+              </>
+            )}
             <li><button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>退出</button></li>
           </>
         ) : (

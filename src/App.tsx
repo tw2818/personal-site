@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
 import Settings from './pages/Settings'
+import Admin from './pages/Admin'
 import Blog from './pages/Blog'
 import NewBlog from './pages/NewBlog'
 import Projects from './pages/Projects'
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/projects/new" element={<ProtectedRoute><NewProject /></ProtectedRoute>} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
