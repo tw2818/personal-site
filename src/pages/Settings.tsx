@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { uploadImage } from '../lib/storage'
+import { uploadImage } from '../lib/storage'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Settings() {
@@ -12,6 +13,8 @@ export default function Settings() {
   const [bilibili, setBilibili] = useState('')
   const [twitter, setTwitter] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
@@ -46,6 +49,16 @@ export default function Settings() {
       }
     })
   }, [user])
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAvatar(true)
+    setAvatarError('')
+    const url = await uploadImage(file)
+    if (url) { setAvatarUrl(url) } else { setAvatarError('上传失败，请重试') }
+    setUploadingAvatar(false)
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()

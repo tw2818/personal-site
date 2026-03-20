@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { directWrite } from '../lib/apiWrite'
+import { uploadImage } from '../lib/storage'
 
 export default function NewProject() {
   const { user, accessToken } = useAuth()
@@ -10,10 +11,22 @@ export default function NewProject() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [coverUrl, setCoverUrl] = useState('')
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [coverError, setCoverError] = useState('')
   const [githubUrl, setGithubUrl] = useState('')
   const [demoUrl, setDemoUrl] = useState('')
   const [featured, setFeatured] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCover(true)
+    setCoverError('')
+    const url = await uploadImage(file)
+    if (url) { setCoverUrl(url) } else { setCoverError('上传失败') }
+    setUploadingCover(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,7 +48,14 @@ export default function NewProject() {
         <motion.form onSubmit={handleSubmit} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginTop: '1.5rem' }}>
           <div className="form-group"><label>项目名称 *</label><input className="form-input" value={name} onChange={e => setName(e.target.value)} required /></div>
           <div className="form-group"><label>描述</label><textarea className="form-input" value={description} onChange={e => setDescription(e.target.value)} rows={3} /></div>
-          <div className="form-group"><label>封面图 URL</label><input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://..." /></div>
+          <div className="form-group">
+            <label>封面图</label>
+            {coverUrl && <img src={coverUrl} alt="cover" style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8, marginBottom: '0.5rem' }} />}
+            <input type="file" accept="image/*" onChange={handleCoverUpload} disabled={uploadingCover} style={{ marginBottom: '0.3rem' }} />
+            {uploadingCover && <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>上传中...</span>}
+            {coverError && <span style={{ fontSize: '0.85rem', color: '#e94560' }}>{coverError}</span>}
+            <input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="或直接输入图片URL" style={{ marginTop: '0.3rem' }} />
+          </div>
           <div className="form-group"><label>GitHub 链接</label><input className="form-input" value={githubUrl} onChange={e => setGithubUrl(e.target.value)} placeholder="https://github.com/..." /></div>
           <div className="form-group"><label>演示链接</label><input className="form-input" value={demoUrl} onChange={e => setDemoUrl(e.target.value)} placeholder="https://..." /></div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
