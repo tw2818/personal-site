@@ -1,32 +1,50 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { motion } from 'framer-motion'
 
 export default function Navbar() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
+  const toggleTheme = () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('theme', next)
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    navigate('/login')
+    navigate('/')
   }
 
   return (
-    <nav style={{ padding: '1rem', background: '#1a1a2e', color: '#fff', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-      <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>🏠 首页</Link>
-      <Link to="/blog" style={{ color: '#fff', textDecoration: 'none' }}>📝 博客</Link>
-      <Link to="/projects" style={{ color: '#fff', textDecoration: 'none' }}>💼 项目</Link>
-      <Link to="/profile" style={{ color: '#fff', textDecoration: 'none' }}>👤 关于</Link>
-      <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
+    <motion.nav
+      className="navbar"
+      initial={{ y: -80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
+      <Link to="/" className="nav-brand">tweb.</Link>
+      <ul className="nav-links">
+        <li><Link to="/">首页</Link></li>
+        <li><Link to="/blog">博客</Link></li>
+        <li><Link to="/projects">项目</Link></li>
+        <li><Link to="/profile">关于</Link></li>
+        <li>
+          <button className="theme-toggle" onClick={toggleTheme} aria-label="切换主题">
+            {document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </li>
         {user ? (
           <>
-            <Link to="/settings" style={{ color: '#fff', textDecoration: 'none' }}>⚙️ 设置</Link>
-            <button onClick={handleLogout} style={{ background: '#e94560', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}>退出</button>
+            <li><Link to="/settings">设置</Link></li>
+            <li><button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>退出</button></li>
           </>
         ) : (
-          <Link to="/login" style={{ color: '#fff', textDecoration: 'none' }}>🔐 登录</Link>
+          <li><Link to="/login"><button className="btn btn-primary" style={{ padding: '0.4rem 1.2rem', fontSize: '0.85rem' }}>登录</button></Link></li>
         )}
-      </div>
-    </nav>
+      </ul>
+    </motion.nav>
   )
 }

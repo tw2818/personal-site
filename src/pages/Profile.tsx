@@ -1,58 +1,92 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Link } from 'react-router-dom'
-
-interface Profile {
-  id: string
-  nickname: string
-  avatar_url: string
-  bio: string
-  github: string
-  bilibili: string
-  twitter: string
-}
 
 export default function Profile() {
   const { user } = useAuth()
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false)
-      return
-    }
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-      .then(({ data }) => {
-        setProfile(data)
-        setLoading(false)
-      })
+    if (!user) { setLoading(false); return }
+    supabase.from('profiles').select('*').eq('id', user.id).single()
+      .then(({ data }) => { setProfile(data); setLoading(false) })
   }, [user])
 
-  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>加载中...</div>
-  if (!user) return <div style={{ padding: '2rem', textAlign: 'center' }}>请先 <Link to="/login">登录</Link></div>
+  if (loading) return <div className="page" style={{ textAlign: 'center', padding: '6rem' }}>加载中...</div>
+  if (!user) return <div className="page" style={{ textAlign: 'center', padding: '6rem' }}>请先 <Link to="/login">登录</Link></div>
+
+  const avatar = profile?.avatar_url || `https://github.com/${user.user_metadata?.user_name || 'github'}.png`
+  const name = profile?.nickname || user.user_metadata?.full_name || user.user_metadata?.user_name || '未设置昵称'
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '700px', margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <img
-          src={profile?.avatar_url || `https://github.com/${user.user_metadata?.user_name || 'github'}.png`}
+    <div className="page">
+      <div className="profile-header">
+        <motion.img
+          src={avatar}
           alt="avatar"
-          style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover' }}
+          className="avatar"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         />
-        <h1 style={{ marginTop: '1rem' }}>{profile?.nickname || user.user_metadata?.full_name || user.user_metadata?.user_name || '未设置昵称'}</h1>
-        <p style={{ color: '#666' }}>{profile?.bio || '这个人很懒，什么都没写'}</p>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
-          {profile?.github && <a href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer">🐙 GitHub</a>}
-          {profile?.bilibili && <span>📺 B站: {profile.bilibili}</span>}
-          {profile?.twitter && <span>🐦 Twitter: {profile.twitter}</span>}
+        <motion.h1
+          className="section-title"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+          style={{ marginBottom: '0.5rem' }}
+        >
+          {name}
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.35 }}
+          style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}
+        >
+          {profile?.bio || '这个人很懒，什么都没写'}
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2rem' }}
+        >
+          {profile?.github && <a href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer" className="btn btn-secondary">🐙 GitHub</a>}
+          {profile?.bilibili && <span className="btn btn-secondary">📺 {profile.bilibili}</span>}
+          {profile?.twitter && <span className="btn btn-secondary">🐦 {profile.twitter}</span>}
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
+          <Link to="/settings" className="btn btn-primary">✏️ 编辑资料</Link>
+        </motion.div>
+      </div>
+
+      <div className="section">
+        <div className="card-grid">
+          {[
+            { icon: '📝', title: `${profile?.blog_count || 0} 篇博客`, desc: '技术思考与生活记录' },
+            { icon: '💼', title: `${profile?.project_count || 0} 个项目`, desc: '有趣的实验与作品' },
+            { icon: '🎓', title: '前端开发者', desc: '热爱技术，热爱生活' },
+          ].map((item, i) => (
+            <motion.div
+              key={item.title}
+              className="card"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 + i * 0.1, duration: 0.5 }}
+              whileHover={{ y: -4 }}
+            >
+              <div className="card-icon">{item.icon}</div>
+              <h3>{item.title}</h3>
+              <p>{item.desc}</p>
+            </motion.div>
+          ))}
         </div>
-        <Link to="/settings" style={{ display: 'inline-block', marginTop: '1rem', color: '#4a90d9' }}>✏️ 编辑个人资料</Link>
       </div>
     </div>
   )

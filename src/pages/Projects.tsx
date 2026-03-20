@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -19,44 +20,53 @@ export default function Projects() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase
-      .from('projects')
-      .select('*')
-      .order('featured', { ascending: false })
-      .then(({ data }) => {
-        setProjects(data || [])
-        setLoading(false)
-      })
+    supabase.from('projects').select('*').order('featured', { ascending: false })
+      .then(({ data }) => { setProjects(data || []); setLoading(false) })
   }, [])
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>💼 项目展示</h1>
-        {user && <Link to="/projects/new" style={{ background: '#4a90d9', color: '#fff', padding: '0.5rem 1rem', borderRadius: '6px', textDecoration: 'none' }}>+ 新增项目</Link>}
-      </div>
+    <div className="page">
+      <div className="section">
+        <motion.h1 className="section-title" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>项目</motion.h1>
+        <motion.p className="section-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>实验、作品与折腾</motion.p>
 
-      {loading ? (
-        <p>加载中...</p>
-      ) : projects.length === 0 ? (
-        <p style={{ color: '#666' }}>还没有项目，{user ? <Link to="/projects/new">添加一个</Link> : '敬请期待'}。</p>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          {projects.map(project => (
-            <div key={project.id} style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
-              {project.cover_url && <img src={project.cover_url} alt={project.name} style={{ width: '100%', height: '160px', objectFit: 'cover' }} />}
-              <div style={{ padding: '1rem' }}>
-                <h3>{project.featured && '⭐ '}{project.name}</h3>
-                <p style={{ color: '#666', fontSize: '0.9rem', margin: '0.5rem 0' }}>{project.description || '暂无描述'}</p>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {project.github_url && <a href={project.github_url} target="_blank" rel="noreferrer" style={{ color: '#24292e' }}>🐙 源码</a>}
-                  {project.demo_url && <a href={project.demo_url} target="_blank" rel="noreferrer" style={{ color: '#4a90d9' }}>🔗 演示</a>}
+        {user && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} style={{ marginBottom: '2rem' }}>
+            <Link to="/projects/new" className="btn btn-primary">➕ 新增项目</Link>
+          </motion.div>
+        )}
+
+        {loading ? (
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem' }}>加载中...</div>
+        ) : projects.length === 0 ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+            <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>💼</p>
+            <p>还没有项目，{user ? <Link to="/projects/new" style={{ color: 'var(--accent)' }}>添加一个</Link> : '敬请期待'}。</p>
+          </motion.div>
+        ) : (
+          <div className="card-grid">
+            {projects.map((p, i) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                whileHover={{ y: -6, scale: 1.01 }}
+              >
+                <div className="card">
+                  {p.cover_url && <img src={p.cover_url} alt={p.name} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 10, marginBottom: '1rem' }} />}
+                  <h3>{p.featured ? '⭐ ' : ''}{p.name}</h3>
+                  <p>{p.description || '暂无描述'}</p>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                    {p.github_url && <a href={p.github_url} target="_blank" rel="noreferrer" className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>🐙 源码</a>}
+                    {p.demo_url && <a href={p.demo_url} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>🔗 演示</a>}
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
