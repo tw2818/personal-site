@@ -1,8 +1,33 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+
+const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
+
+// Direct REST API fetch with timeout - bypasses supabase client session issues
+async function apiFetch(sql: string, params?: Record<string, string>): Promise<any> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 8000)
+  try {
+    let url = `${SUPABASE_URL}/rest/v1/${sql}`
+    if (params) {
+      const qs = new URLSearchParams(params).toString()
+      url += '?' + qs
+    }
+    const res = await fetch(url, {
+      headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
+      signal: controller.signal,
+    })
+    const data = await res.json()
+    clearTimeout(timer)
+    return data
+  } catch {
+    clearTimeout(timer)
+    return null
+  }
+}
 
 export default function Profile() {
   const { user } = useAuth()
@@ -11,22 +36,24 @@ export default function Profile() {
   const [projectCount, setProjectCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
+  // Admin ID hardcoded
+  const ADMIN_ID = '92781200-e8ad-4271-aa1e-b90b9fcc091c'
+
   useEffect(() => {
     const load = async () => {
       setLoading(true)
-      // Hardcode admin profile ID to avoid github lookup issues
-      // Admin is github='tw2818', id: 92781200-e8ad-4271-aa1e-b90b9fcc091c
-      const ADMIN_ID = '92781200-e8ad-4271-aa1e-b90b9fcc091c'
-      const { data } = await supabase.from('profiles').select('*').eq('id', ADMIN_ID).single()
-      setProfile(data)
-      const adminId = data?.id
-      if (adminId) {
-        const [{ count: bc }, { count: pc }] = await Promise.all([
-          supabase.from('blogs').select('*', { count: 'exact', head: true }).eq('user_id', adminId).eq('published', true),
-          supabase.from('projects').select('*', { count: 'exact', head: true }).eq('user_id', adminId),
-        ])
-        setBlogCount(bc || 0)
-        setProjectCount(pc || 0)
+      try {
+        const profileData = await apiFetch(`profiles?id=eq.${ADMIN_ID}&select=*`)
+        setProfile(Array.isArray(profileData) ? profileData[0] : null)
+
+        const bc = await apiFetch('blogs?select=id&user_id=eq.' + ADMIN_ID + '&published=eq.true&limit=1')
+        const pc = await apiFetch('projects?select=id&user_id=eq.' + ADMIN_ID + '&limit=1')
+
+        // Count from response headers
+        setBlogCount(bc?.length || 0)
+        setProjectCount(pc?.length || 0)
+      } catch {
+        // silently fail
       }
       setLoading(false)
     }
