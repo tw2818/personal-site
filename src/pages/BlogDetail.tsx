@@ -122,6 +122,8 @@ export default function BlogDetail() {
     setSubmitSuccess(false)
 
     try {
+      const uid = decodeJWT(accessToken) || user?.id || 'MISSING_ID'
+      console.debug('[Comment Debug] accessToken present:', !!accessToken, '| decoded uid:', uid, '| user.id:', user?.id)
       const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
         method: 'POST',
         headers: {
