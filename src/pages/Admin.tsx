@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { useAuth } from '../contexts/AuthContext'
+import { directWrite } from '../lib/apiWrite'
 import { supabase } from '../lib/supabase'
+'
 import { useAuth } from '../contexts/AuthContext'
 
 interface UserProfile {
@@ -105,6 +108,8 @@ function UsersTab() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
+  const { accessToken } = useAuth()
+  const { accessToken } = useAuth()
   const fetchUsers = async () => {
     setLoading(true)
     const { data } = await (supabase as any).rpc('get_users_admin')
@@ -117,9 +122,9 @@ function UsersTab() {
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`确定删除用户 ${name}？这将同时删除其所有数据。`)) return
     setDeleting(id)
-    await supabase.from('profiles').delete().eq('id', id)
-    await supabase.from('blogs').delete().eq('user_id', id)
-    await supabase.from('projects').delete().eq('user_id', id)
+    await directWrite('DELETE', 'profiles', undefined, `id=eq.${id}`, accessToken || '')
+    await directWrite('DELETE', 'blogs', undefined, `user_id=eq.${id}`, accessToken)
+    await directWrite('DELETE', 'projects', undefined, `user_id=eq.${id}`, accessToken)
     setDeleting(null)
     fetchUsers()
   }

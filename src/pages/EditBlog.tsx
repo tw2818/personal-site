@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import RichEditor from '../components/RichEditor'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
+import { directWrite, useApiWrite } from '../lib/apiWrite'
+import RichEditor from '../components/RichEditor'
 
 export default function EditBlog() {
   const { id } = useParams<{ id: string }>()
+  const { user, accessToken } = useAuth()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -17,35 +19,54 @@ export default function EditBlog() {
 
   useEffect(() => {
     if (!id) return
-    supabase.from('blogs').select('*').eq('id', id).single()
-      .then(({ data }) => {
-        if (data) {
-          setTitle(data.title || '')
-          setContent(data.content || '')
-          setCoverUrl(data.cover_url || '')
-          setTags((data.tags || []).join(', '))
-          setPublished(data.published || false)
-        }
-        setLoading(false)
-      })
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 8000)
+    fetch(
+      `https://osteeuwotaywuqsztipz.supabase.co/rest/v1/blogs?id=eq.${encodeURIComponent(id)}&select=*`,
+      {
+        headers: {
+          apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM',
+        },
+        signal: controller.signal,
+      }
+    ).then(r => r.json()).then(data => {
+      clearTimeout(timer)
+      if (data?.[0]) {
+        setTitle(data[0].title || '')
+        setContent(data[0].content || '')
+        setCoverUrl(data[0].cover_url || '')
+        setTags((data[0].tags || []).join(', '))
+        setPublished(data[0].published || false)
+      }
+      setLoading(false)
+    }).catch(() => {
+      clearTimeout(timer)
+      setLoading(false)
+    })
   }, [id])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!id || !title.trim()) return
+    if (!id || !title.trim() || !accessToken) return
     setSaving(true)
-    await supabase.from('blogs').update({
-      title: title.trim(), content: content.trim(),
-      cover_url: coverUrl.trim(), tags: tags.split(',').map(t => t.trim()).filter(Boolean), published,
-      updated_at: new Date().toISOString(),
-    }).eq('id', id)
+    await directWrite(
+      'PATCH', 'blogs',
+      {
+        title: title.trim(), content: content.trim(),
+        cover_url: coverUrl.trim(), tags: tags.split(',').map(t => t.trim()).filter(Boolean), published,
+        updated_at: new Date().toISOString(),
+      },
+      `id=eq.${encodeURIComponent(id)}`,
+      accessToken
+    )
     setSaving(false)
     navigate('/blog')
   }
 
   const handleDelete = async () => {
-    if (!id || !confirm('确定删除这篇文章？')) return
-    await supabase.from('blogs').delete().eq('id', id)
+    if (!id || !accessToken || !confirm('确定删除这篇文章？')) return
+    await directWrite('DELETE', 'blogs', undefined, `id=eq.${encodeURIComponent(id)}`, accessToken)
     navigate('/blog')
   }
 
@@ -53,7 +74,7 @@ export default function EditBlog() {
 
   return (
     <div className="page">
-      <div className="section" style={{ maxWidth: 800 }}>
+      <div className="section" style={{ maxWidth: 900 }}>
         <motion.h1 className="section-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>✏️ 编辑博客</motion.h1>
         <motion.form onSubmit={handleSave} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginTop: '1.5rem' }}>
           <div className="form-group"><label>标题 *</label><input className="form-input" value={title} onChange={e => setTitle(e.target.value)} required /></div>

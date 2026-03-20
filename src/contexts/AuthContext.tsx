@@ -6,21 +6,36 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
+  accessToken: string | null
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
+  accessToken: null,
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [accessToken, setAccessToken] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
+
+    // Read session from localStorage directly - avoids supabase JS getSession() hang
+    const readLocalSession = () => {
+      try {
+        const raw = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          return parsed.access_token || null
+        }
+      } catch {}
+      return null
+    }
 
     const initAuth = async () => {
       try {
@@ -33,76 +48,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!cancelled && data?.session) {
             setSession(data.session)
             setUser(data.session.user)
-            // Ensure profile exists for new user
-            const { data: existing } = await supabase
-              .from('profiles').select('id').eq('id', data.session.user.id).single()
-            if (!existing) {
-              await supabase.from('profiles').insert({
-                id: data.session.user.id,
-                email: data.session.user.email,
-                nickname: '',
-                avatar_url: data.session.user.user_metadata?.avatar_url || '',
-                github: data.session.user.user_metadata?.user_name || '',
-              })
-            }
+            setAccessToken(data.session.access_token)
+            ensureProfile(data.session.user)
           }
           if (!cancelled) setLoading(false)
           return
         }
 
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!cancelled && session?.user) {
-          const { data: existing } = await supabase
-            .from('profiles').select('id').eq('id', session.user.id).single()
-          if (!existing) {
-            await supabase.from('profiles').insert({
-              id: session.user.id,
-              email: session.user.email,
-              nickname: '',
-              avatar_url: session.user.user_metadata?.avatar_url || '',
-              github: session.user.user_metadata?.user_name || '',
-            })
-          }
-        }
-        if (!cancelled) {
-          setSession(session)
-          setUser(session?.user ?? null)
+        // Read token from localStorage immediately (sync, no hang)
+        const localToken = readLocalSession()
+        if (localToken) {
+          // Decode JWT to get user info without supabase call
+          const payload = JSON.parse(atob(localToken.split('.')[1]))
+          const fakeUser = { id: payload.sub, email: payload.email, user_metadata: {} } as User
+          setAccessToken(localToken)
+          setUser(fakeUser)
           setLoading(false)
+        } else {
+          if (!cancelled) {
+            setSession(null)
+            setUser(null)
+            setAccessToken(null)
+            setLoading(false)
+          }
         }
       } catch (err) {
         console.error('Auth init error:', err)
         if (!cancelled) {
           setSession(null)
           setUser(null)
+          setAccessToken(null)
           setLoading(false)
         }
       }
     }
 
+    const ensureProfile = async (user: User) => {
+      try {
+        const { data: existing } = await supabase
+          .from('profiles').select('id').eq('id', user.id).single()
+        if (!existing) {
+          await supabase.from('profiles').insert({
+            id: user.id,
+            email: user.email,
+            nickname: '',
+            avatar_url: user.user_metadata?.avatar_url || '',
+            github: user.user_metadata?.user_name || '',
+          })
+        }
+      } catch {}
+    }
+
     initAuth()
 
-    // Safety timeout: force loading off after 8s
-    const timeout = setTimeout(() => {
-      if (!cancelled) setLoading(false)
-    }, 8000)
+    // Safety timeout
+    const timeout = setTimeout(() => { if (!cancelled) setLoading(false) }, 8000)
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (cancelled) return
       setSession(session)
       setUser(session?.user ?? null)
-      if (session?.user) {
-        const { data: existing } = await supabase
-          .from('profiles').select('id').eq('id', session.user.id).single()
-        if (!existing) {
-          await supabase.from('profiles').insert({
-            id: session.user.id,
-            email: session.user.email,
-            nickname: '',
-            avatar_url: session.user.user_metadata?.avatar_url || '',
-            github: session.user.user_metadata?.user_name || '',
-          })
-        }
-      }
+      setAccessToken(session?.access_token ?? null)
+      if (session?.user) ensureProfile(session.user)
     })
 
     return () => {
@@ -113,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, session, loading }}>
+    <AuthContext.Provider value={{ user, session, loading, accessToken }}>
       {children}
     </AuthContext.Provider>
   )

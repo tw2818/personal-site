@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
+import { directWrite } from '../lib/apiWrite'
 
 export default function EditProject() {
   const { id } = useParams<{ id: string }>()
+  const { accessToken } = useAuth()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -17,35 +19,43 @@ export default function EditProject() {
 
   useEffect(() => {
     if (!id) return
-    supabase.from('projects').select('*').eq('id', id).single()
-      .then(({ data }) => {
-        if (data) {
-          setName(data.name || '')
-          setDescription(data.description || '')
-          setCoverUrl(data.cover_url || '')
-          setGithubUrl(data.github_url || '')
-          setDemoUrl(data.demo_url || '')
-          setFeatured(data.featured || false)
-        }
-        setLoading(false)
-      })
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 8000)
+    fetch(
+      `https://osteeuwotaywuqsztipz.supabase.co/rest/v1/projects?id=eq.${encodeURIComponent(id)}&select=*`,
+      {
+        headers: {
+          apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM',
+        },
+        signal: controller.signal,
+      }
+    ).then(r => r.json()).then(data => {
+      clearTimeout(timer)
+      if (data?.[0]) {
+        setName(data[0].name || '')
+        setDescription(data[0].description || '')
+        setCoverUrl(data[0].cover_url || '')
+        setGithubUrl(data[0].github_url || '')
+        setDemoUrl(data[0].demo_url || '')
+        setFeatured(data[0].featured || false)
+      }
+      setLoading(false)
+    }).catch(() => { clearTimeout(timer); setLoading(false) })
   }, [id])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!id || !name.trim()) return
+    if (!id || !name.trim() || !accessToken) return
     setSaving(true)
-    await supabase.from('projects').update({
-      name: name.trim(), description: description.trim(),
-      cover_url: coverUrl.trim(), github_url: githubUrl.trim(), demo_url: demoUrl.trim(), featured,
-    }).eq('id', id)
+    await directWrite('PATCH', 'projects', { name: name.trim(), description: description.trim(), cover_url: coverUrl.trim(), github_url: githubUrl.trim(), demo_url: demoUrl.trim(), featured }, `id=eq.${encodeURIComponent(id)}`, accessToken)
     setSaving(false)
     navigate('/projects')
   }
 
   const handleDelete = async () => {
-    if (!id || !confirm('确定删除这个项目？')) return
-    await supabase.from('projects').delete().eq('id', id)
+    if (!id || !accessToken || !confirm('确定删除这个项目？')) return
+    await directWrite('DELETE', 'projects', undefined, `id=eq.${encodeURIComponent(id)}`, accessToken)
     navigate('/projects')
   }
 

@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { directWrite } from '../lib/apiWrite'
 
 export default function NewProject() {
-  const { user } = useAuth()
+  const { user, accessToken } = useAuth()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -17,14 +17,15 @@ export default function NewProject() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user || !name.trim()) return
+    if (!user || !name.trim() || !accessToken) return
     setSaving(true)
-    await supabase.from('projects').insert({
-      user_id: user.id, name: name.trim(), description: description.trim(),
-      cover_url: coverUrl.trim(), github_url: githubUrl.trim(), demo_url: demoUrl.trim(), featured,
-    })
+    const { error } = await directWrite(
+      'POST', 'projects',
+      { user_id: user.id, name: name.trim(), description: description.trim(), cover_url: coverUrl.trim(), github_url: githubUrl.trim(), demo_url: demoUrl.trim(), featured },
+      '', accessToken
+    )
     setSaving(false)
-    navigate('/projects')
+    if (!error) navigate('/projects')
   }
 
   return (
