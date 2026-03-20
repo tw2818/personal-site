@@ -38,7 +38,7 @@ export default function Navbar() {
         <li><Link to="/profile">关于</Link></li>
         <li>
           <button className="theme-toggle" onClick={toggleTheme} aria-label="切换主题">
-            {isDark ? '☀️' : '🌙'}
+            {isDark ? '🌙' : '☀️'}
           </button>
         </li>
         {user ? (
