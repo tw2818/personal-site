@@ -15,6 +15,7 @@ interface Blog {
 
 export default function Blog() {
   const { user } = useAuth()
+  const isAdmin = user?.user_metadata?.user_name === 'tw2818'
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -47,7 +48,7 @@ export default function Blog() {
           思考、实践、记录
         </motion.p>
 
-        {user && (
+        {isAdmin && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

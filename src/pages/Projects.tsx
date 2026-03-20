@@ -16,6 +16,7 @@ interface Project {
 
 export default function Projects() {
   const { user } = useAuth()
+  const isAdmin = user?.user_metadata?.user_name === 'tw2818'
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -30,7 +31,7 @@ export default function Projects() {
         <motion.h1 className="section-title" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>项目</motion.h1>
         <motion.p className="section-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>实验、作品与折腾</motion.p>
 
-        {user && (
+        {isAdmin && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} style={{ marginBottom: '2rem' }}>
             <Link to="/projects/new" className="btn btn-primary">➕ 新增项目</Link>
           </motion.div>
