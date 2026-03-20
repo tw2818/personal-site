@@ -350,3 +350,123 @@ textarea.form-input { resize: vertical; min-height: 120px; }
 .markdown-body th { background: var(--bg-secondary); font-weight: 600; }
 .markdown-body hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
 .markdown-body input[type="checkbox"] { margin-right: 0.4rem; }
+
+/* ── Toast UI Editor Dark Theme ── */
+.toastui-editor-dark .toastui-editor-defaultUI {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+.toastui-editor-dark .toastui-editor-defaultUI .toastui-editor-toolbar {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+.toastui-editor-dark .toastui-editor-defaultUI .toastui-editor-toolbar button {
+  color: var(--text-secondary);
+}
+
+.toastui-editor-dark .toastui-editor-defaultUI .toastui-editor-toolbar button:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.toastui-editor-dark .toastui-editor-defaultUI .toastui-editor-contents {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.toastui-editor-dark .toastui-editor-contents * {
+  color: var(--text);
+}
+
+.toastui-editor-dark .toastui-editor-md-splitter {
+  border-color: var(--border);
+}
+
+.toastui-editor-dark .toastui-editor-ww-mode {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.toastui-editor-dark .toastui-editor-md-mode {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.toastui-editor-dark .toastui-editor-md-mode .CodeMirror {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.toastui-editor-dark .toastui-editor-md-mode .CodeMirror-gutters {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+.toastui-editor-dark .ProseMirror {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.toastui-editor-dark .ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--text-secondary);
+}
+
+.toastui-editor-dark .toastui-editor-popup {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.toastui-editor-dark .toastui-editor-popup .toastui-editor-table-modal {
+  color: var(--text);
+}
+
+.toastui-editor-dark .toastui-editor-dropdown-menu {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+.toastui-editor-dark .toastui-editor-dropdown-menu .toastui-editor-dropdown-menu-item {
+  color: var(--text-secondary);
+}
+
+.toastui-editor-dark .toastui-editor-dropdown-menu .toastui-editor-dropdown-menu-item:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.toastui-editor-dark .toastui-editor-toolbar-icons {
+  filter: invert(0.6);
+}
+
+.toastui-editor-dark .toastui-editor-usage {
+  color: var(--text-secondary);
+}
+
+/* Override Toast UI Editor's internal white background */
+.toastui-editor-defaultUI,
+.toastui-editor-defaultUI > .toastui-editor-panel,
+.toastui-editor-contents,
+.toastui-editor-md-splitter,
+.ProseMirror {
+  background: var(--bg) !important;
+}
+
+.toastui-editor-dark .toastui-editor-defaultUI,
+.toastui-editor-dark .toastui-editor-defaultUI > .toastui-editor-panel,
+.toastui-editor-dark .toastui-editor-contents,
+.toastui-editor-dark .toastui-editor-md-splitter,
+.toastui-editor-dark .ProseMirror {
+  background: var(--bg-secondary) !important;
+}
+
+.toastui-editor-dark .toastui-editor-contents {
+  background: var(--bg) !important;
+}
+
+.toastui-editor-dark .ProseMirror {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}

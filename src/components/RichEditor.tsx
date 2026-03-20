@@ -11,12 +11,35 @@ interface Props {
 export default function RichEditor({ value, onChange, placeholder }: Props) {
   const editorRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  
+
+  // Apply theme class to editor container
+  useEffect(() => {
+    const applyTheme = () => {
+      if (!containerRef.current) return
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+      containerRef.current.classList.toggle('toastui-editor-dark', isDark)
+    }
+
+    applyTheme()
+
+    // Watch for theme changes via MutationObserver
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.attributeName === 'data-theme') applyTheme()
+      }
+    })
+    observer.observe(document.documentElement, { attributes: true })
+
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     import('@toast-ui/editor').then((mod) => {
       const E = mod.Editor
       if (containerRef.current && !editorRef.current) {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+        if (isDark) containerRef.current.classList.add('toastui-editor-dark')
+
         const instance = new E({
           el: containerRef.current,
           initialEditType: 'markdown',

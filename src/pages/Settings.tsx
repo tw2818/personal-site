@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
+import { uploadImage } from '../lib/storage'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Settings() {
@@ -13,6 +14,22 @@ export default function Settings() {
   const [avatarUrl, setAvatarUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAvatar(true)
+    setAvatarError('')
+    const url = await uploadImage(file)
+    setUploadingAvatar(false)
+    if (url) {
+      setAvatarUrl(url)
+    } else {
+      setAvatarError('头像上传失败，请重试')
+    }
+  }
 
   useEffect(() => {
     if (!user) return
@@ -59,7 +76,7 @@ export default function Settings() {
           style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}
         >
           {[
-            { label: '头像 URL', value: avatarUrl, set: setAvatarUrl, placeholder: 'https://...' },
+            { label: '头像', value: avatarUrl, set: setAvatarUrl, placeholder: 'https://...' },
             { label: '昵称', value: nickname, set: setNickname, placeholder: '你的昵称' },
             { label: '个人简介', value: bio, set: setBio, placeholder: '简单介绍一下自己' },
             { label: 'GitHub 用户名', value: github, set: setGithub, placeholder: 'username' },
@@ -68,7 +85,15 @@ export default function Settings() {
           ].map(f => (
             <div className="form-group" key={f.label}>
               <label>{f.label}</label>
-              {f.label === '个人简介' ? (
+              {f.label === '头像' ? (
+                <>
+                  <input type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'block', marginBottom: '0.5rem' }} />
+                  {uploadingAvatar && <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>上传中...</span>}
+                  {avatarError && <span style={{ fontSize: '0.9rem', color: '#e94560' }}>{avatarError}</span>}
+                  {f.value && <img src={f.value} alt="头像预览" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', marginTop: '0.5rem', display: 'block' }} />}
+                  <input className="form-input" value={f.value} onChange={e => f.set(e.target.value)} placeholder="或直接输入头像 URL" style={{ marginTop: '0.5rem' }} />
+                </>
+              ) : f.label === '个人简介' ? (
                 <textarea className="form-input" value={f.value} onChange={e => f.set(e.target.value)} placeholder={f.placeholder} rows={3} />
               ) : (
                 <input className="form-input" value={f.value} onChange={e => f.set(e.target.value)} placeholder={f.placeholder} />

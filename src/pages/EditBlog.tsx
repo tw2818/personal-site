@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { directWrite } from '../lib/apiWrite'
+import { uploadImage } from '../lib/storage'
 import RichEditor from '../components/RichEditor'
 
 export default function EditBlog() {
@@ -16,6 +17,22 @@ export default function EditBlog() {
   const [published, setPublished] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [coverError, setCoverError] = useState('')
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCover(true)
+    setCoverError('')
+    const url = await uploadImage(file)
+    setUploadingCover(false)
+    if (url) {
+      setCoverUrl(url)
+    } else {
+      setCoverError('封面上传失败，请重试')
+    }
+  }
 
   useEffect(() => {
     if (!id) return
@@ -78,7 +95,14 @@ export default function EditBlog() {
         <motion.h1 className="section-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>✏️ 编辑博客</motion.h1>
         <motion.form onSubmit={handleSave} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginTop: '1.5rem' }}>
           <div className="form-group"><label>标题 *</label><input className="form-input" value={title} onChange={e => setTitle(e.target.value)} required /></div>
-          <div className="form-group"><label>封面图 URL</label><input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://..." /></div>
+          <div className="form-group">
+            <label>封面图</label>
+            <input type="file" accept="image/*" onChange={handleCoverUpload} style={{ display: 'block', marginBottom: '0.5rem' }} />
+            {uploadingCover && <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>上传中...</span>}
+            {coverError && <span style={{ fontSize: '0.9rem', color: '#e94560' }}>{coverError}</span>}
+            {coverUrl && <img src={coverUrl} alt="封面预览" style={{ maxWidth: 200, maxHeight: 120, borderRadius: 8, marginTop: '0.5rem', display: 'block' }} />}
+            <input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="或直接输入封面图 URL" style={{ marginTop: '0.5rem' }} />
+          </div>
           <div className="form-group"><label>正文 *</label><RichEditor value={content} onChange={setContent} /></div>
           <div className="form-group"><label>标签（逗号分隔）</label><input className="form-input" value={tags} onChange={e => setTags(e.target.value)} placeholder="react, typescript" /></div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
