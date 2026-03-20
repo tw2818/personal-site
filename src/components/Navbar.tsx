@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -6,11 +7,15 @@ import { motion } from 'framer-motion'
 export default function Navbar() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [isDark, setIsDark] = useState(() =>
+    document.documentElement.getAttribute('data-theme') === 'dark'
+  )
 
   const toggleTheme = () => {
-    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+    const next = isDark ? 'light' : 'dark'
     document.documentElement.setAttribute('data-theme', next)
     localStorage.setItem('theme', next)
+    setIsDark(!isDark)
   }
 
   const handleLogout = async () => {
@@ -33,7 +38,7 @@ export default function Navbar() {
         <li><Link to="/profile">关于</Link></li>
         <li>
           <button className="theme-toggle" onClick={toggleTheme} aria-label="切换主题">
-            {document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}
+            {isDark ? '☀️' : '🌙'}
           </button>
         </li>
         {user ? (
