@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
@@ -10,23 +10,46 @@ export default function BlogDetail() {
   const { user } = useAuth()
   const [blog, setBlog] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  // Guard against auth-state-change re-renders interrupting the fetch
+  const mountedRef = useRef(true)
 
   useEffect(() => {
     if (!id) { setLoading(false); return }
-    let cancelled = false
-    const timer = setTimeout(() => { cancelled = true; setLoading(false) }, 8000)
+    mountedRef.current = true
+    const timer = setTimeout(() => {
+      if (mountedRef.current) {
+        console.log('[BlogDetail] fetch timeout - cancelling')
+        setLoading(false)
+      }
+    }, 8000)
 
     const doFetch = async () => {
+      console.log('[BlogDetail] fetch started, id:', id)
       try {
-        const { data } = await supabase.from('blogs').select('*').eq('id', id).single()
-        if (!cancelled) { setBlog(data); setLoading(false) }
-      } catch {
-        if (!cancelled) setLoading(false)
+        const { data, error } = await supabase
+          .from('blogs')
+          .select('*')
+          .eq('id', id)
+          .single()
+          .throwOnError()
+        console.log('[BlogDetail] fetch result:', data, 'error:', error)
+        if (mountedRef.current) {
+          setBlog(data)
+          setLoading(false)
+        }
+      } catch (err) {
+        console.error('[BlogDetail] fetch error:', err)
+        if (mountedRef.current) setLoading(false)
       } finally {
         clearTimeout(timer)
       }
     }
     doFetch()
+
+    return () => {
+      mountedRef.current = false
+      clearTimeout(timer)
+    }
   }, [id])
 
   if (loading) return <div className="page" style={{ textAlign: 'center', padding: '4rem' }}>加载中...</div>
