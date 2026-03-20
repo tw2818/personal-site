@@ -16,7 +16,6 @@ export default function Profile() {
   }, [user])
 
   if (loading) return <div className="page" style={{ textAlign: 'center', padding: '6rem' }}>加载中...</div>
-  if (!user) return <div className="page" style={{ textAlign: 'center', padding: '6rem' }}>请先 <Link to="/login">登录</Link></div>
 
   const avatar = profile?.avatar_url || `https://github.com/${user.user_metadata?.user_name || 'github'}.png`
   const name = profile?.nickname || user.user_metadata?.full_name || user.user_metadata?.user_name || '未设置昵称'
@@ -61,9 +60,11 @@ export default function Profile() {
           {profile?.twitter && <span className="btn btn-secondary">🐦 {profile.twitter}</span>}
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
-          <Link to="/settings" className="btn btn-primary">✏️ 编辑资料</Link>
-        </motion.div>
+        {user && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
+            <Link to="/settings" className="btn btn-primary">✏️ 编辑资料</Link>
+          </motion.div>
+        )}
       </div>
 
       <div className="section">
