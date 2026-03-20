@@ -16,6 +16,13 @@ interface Blog {
   created_at: string
 }
 
+interface Tag {
+  id: string
+  name: string
+  slug: string
+  color: string
+}
+
 export default function Blog() {
   const { user } = useAuth()
   const isAdmin = user?.user_metadata?.user_name === 'tw2818'
@@ -23,6 +30,8 @@ export default function Blog() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'published' | 'drafts'>('published')
   const [search, setSearch] = useState('')
+  const [tags, setTags] = useState<Tag[]>([])
+  const [selectedTag, setSelectedTag] = useState('')
   void search
   const [searchQuery, setSearchQuery] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -35,7 +44,8 @@ export default function Blog() {
       const filter = tab === 'published' ? 'published=eq.true' : 'published=eq.false'
       let url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&order=created_at.desc`
       if (searchQuery.trim()) {
-        url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&title=ilike.*${encodeURIComponent(searchQuery)}*&order=created_at.desc`
+        const query = encodeURIComponent(searchQuery.trim())
+        url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&title=ilike.*${query}*&order=created_at.desc`
       }
       const res = await fetch(url, {
         headers: {
@@ -47,10 +57,15 @@ export default function Blog() {
       clearTimeout(timer)
       const data = await res.json()
       let results = Array.isArray(data) ? data : []
+      results = results.map((b: any) => ({
+        ...b,
+        tags: (() => { try { return typeof b.tags === 'string' ? JSON.parse(b.tags) : (b.tags || []) } catch { return [] } })()
+      }))
       // Tag filter is done client-side since cs. operator works differently
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase()
-        results = results.filter((b: Blog) =>
+        results = results.filter((b: any) =>
+          b.title?.toLowerCase().includes(q) ||
           b.tags?.some((t: string) => t.toLowerCase().includes(q))
         )
       }
@@ -70,6 +85,20 @@ export default function Blog() {
       fetchBlogs()
     }
   }, [tab, searchQuery])
+
+  const fetchTags = async () => {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/tags?select=*&order=name.asc`, {
+        headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
+      })
+      const data = await res.json()
+      if (Array.isArray(data)) setTags(data)
+    } catch {}
+  }
+
+  useEffect(() => {
+    fetchTags()
+  }, [])
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
@@ -124,6 +153,35 @@ export default function Blog() {
             </button>
           )}
         </div>
+
+        {/* Tag filter */}
+        {tags.length > 0 && (
+          <div style={{ marginBottom: '1rem' }}>
+            <select
+              value={selectedTag}
+              onChange={e => {
+                setSelectedTag(e.target.value)
+                setSearchQuery(e.target.value)
+              }}
+              style={{
+                padding: '0.45rem 0.75rem',
+                border: '1px solid var(--border)',
+                borderRadius: 10,
+                background: 'var(--bg-secondary)',
+                color: 'var(--text)',
+                fontSize: '0.875rem',
+                outline: 'none',
+                cursor: 'pointer',
+                minWidth: 140,
+              }}
+            >
+              <option value="">🏷️ 全部标签</option>
+              {tags.map(tag => (
+                <option key={tag.id} value={tag.slug}>{tag.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Search input */}
         <div style={{ position: 'relative', marginBottom: '1.5rem', maxWidth: 400 }}>

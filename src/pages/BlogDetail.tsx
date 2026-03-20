@@ -7,6 +7,15 @@ import { useAuth } from '../contexts/AuthContext'
 const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
 
+const decodeJWT = (token: string): string | null => {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+    return payload.sub
+  } catch { return null }
+}
+
 interface Comment {
   id: string
   blog_id: string
@@ -123,7 +132,7 @@ export default function BlogDetail() {
         },
         body: JSON.stringify({
           blog_id: id,
-          user_id: user?.id || '',
+          user_id: decodeJWT(accessToken) || user?.id || '',
           nickname: user?.user_metadata?.nickname || user?.user_metadata?.user_name || user?.email?.split('@')[0] || 'Anonymous',
           avatar_url: user?.user_metadata?.avatar_url || '',
           content: newComment.trim(),

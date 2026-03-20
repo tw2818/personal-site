@@ -13,6 +13,7 @@ import EditBlog from './pages/EditBlog'
 import Projects from './pages/Projects'
 import NewProject from './pages/NewProject'
 import EditProject from './pages/EditProject'
+import Tags from './pages/Tags'
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Navigate to="/admin" replace />} />
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+          <Route path="/tags" element={<Tags />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
