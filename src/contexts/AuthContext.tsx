@@ -54,9 +54,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
+      // New user logged in: auto-create profile if not exists
+      if (session?.user) {
+        const { data: existing } = await supabase
+          .from('profiles').select('id').eq('id', session.user.id).single()
+        if (!existing) {
+          await supabase.from('profiles').insert({
+            id: session.user.id,
+            email: session.user.email,
+            nickname: '',
+            avatar_url: session.user.user_metadata?.avatar_url || '',
+            github: session.user.user_metadata?.user_name || '',
+          })
+        }
+      }
     })
     return () => subscription.unsubscribe()
   }, [])
