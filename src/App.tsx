@@ -5,7 +5,6 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
-import Settings from './pages/Settings'
 import Admin from './pages/Admin'
 import Blog from './pages/Blog'
 import NewBlog from './pages/NewBlog'
@@ -25,7 +24,7 @@ export default function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/new" element={<ProtectedRoute><NewProject /></ProtectedRoute>} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/settings" element={<Navigate to="/admin" replace />} />
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>

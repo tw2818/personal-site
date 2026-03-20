@@ -62,7 +62,7 @@ export default function Profile() {
 
         {user && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
-            <Link to="/settings" className="btn btn-primary">✏️ 编辑资料</Link>
+            <Link to="/admin" className="btn btn-primary">✏️ 编辑资料</Link>
           </motion.div>
         )}
       </div>
