@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>Auth callback</title></head>
+<body>
+<script>
+  var params = new URLSearchParams(window.location.search);
+  var code = params.get('code');
+  var state = params.get('state');
+  var error = params.get('error');
+
+  if (error) {
+    window.location.href = '/?auth_error=' + encodeURIComponent(error);
+  } else if (code) {
+    sessionStorage.setItem('supabase_code', code);
+    if (state) sessionStorage.setItem('supabase_state', state);
+    window.location.href = '/';
+  } else {
+    window.location.href = '/';
+  }
+</script>
+<p style="font-family:sans-serif;padding:2rem;text-align:center;color:#888">Authenticating...</p>
+</body>
+</html>

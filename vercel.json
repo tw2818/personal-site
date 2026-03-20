@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/auth/v1/callback", "destination": "/auth/v1/callback.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

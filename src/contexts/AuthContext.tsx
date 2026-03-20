@@ -20,20 +20,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const exchangeCode = async () => {
+      const code = sessionStorage.getItem('supabase_code')
+      if (code) {
+        sessionStorage.removeItem('supabase_code')
+        const { data, error } = await (supabase.auth as any).exchangeCodeForSession(code)
+        if (!error && data) {
+          setSession(data.session)
+          setUser(data.session?.user ?? null)
+          setLoading(false)
+          return
+        }
+      }
+
+      const { data: { session } } = await supabase.auth.getSession()
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
-    })
+    }
 
+    exchangeCode()
+  }, [])
+
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
-      setLoading(false)
+      if (!loading) setLoading(false)
     })
-
     return () => subscription.unsubscribe()
-  }, [])
+  }, [loading])
 
   return (
     <AuthContext.Provider value={{ user, session, loading }}>
