@@ -15,7 +15,8 @@ export default function Profile() {
     const load = async () => {
       setLoading(true)
       // Hardcode admin profile ID to avoid github lookup issues
-      const ADMIN_ID = '0f673692-97e2-4208-9af1-3b82f038a982'
+      // Admin is github='tw2818', id: 92781200-e8ad-4271-aa1e-b90b9fcc091c
+      const ADMIN_ID = '92781200-e8ad-4271-aa1e-b90b9fcc091c'
       const { data } = await supabase.from('profiles').select('*').eq('id', ADMIN_ID).single()
       setProfile(data)
       const adminId = data?.id
