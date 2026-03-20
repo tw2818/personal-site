@@ -17,8 +17,8 @@ export default function Profile() {
 
   if (loading) return <div className="page" style={{ textAlign: 'center', padding: '6rem' }}>加载中...</div>
 
-  const avatar = profile?.avatar_url || `https://github.com/${user.user_metadata?.user_name || 'github'}.png`
-  const name = profile?.nickname || user.user_metadata?.full_name || user.user_metadata?.user_name || '未设置昵称'
+  const avatar = profile?.avatar_url || (user ? `https://github.com/${user.user_metadata?.user_name || 'github'}.png` : 'https://github.com/github.png')
+  const name = profile?.nickname || user?.user_metadata?.full_name || user?.user_metadata?.user_name || '未设置昵称'
 
   return (
     <div className="page">
