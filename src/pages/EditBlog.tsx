@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import RichEditor from '../components/RichEditor'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
@@ -57,7 +58,7 @@ export default function EditBlog() {
         <motion.form onSubmit={handleSave} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginTop: '1.5rem' }}>
           <div className="form-group"><label>标题 *</label><input className="form-input" value={title} onChange={e => setTitle(e.target.value)} required /></div>
           <div className="form-group"><label>封面图 URL</label><input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://..." /></div>
-          <div className="form-group"><label>正文 *</label><textarea className="form-input" value={content} onChange={e => setContent(e.target.value)} required rows={15} style={{ fontFamily: 'monospace', fontSize: '0.9rem' }} /></div>
+          <div className="form-group"><label>正文 *</label><RichEditor value={content} onChange={setContent} /></div>
           <div className="form-group"><label>标签（逗号分隔）</label><input className="form-input" value={tags} onChange={e => setTags(e.target.value)} placeholder="react, typescript" /></div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
             <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} />
