@@ -21,46 +21,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
-      try {
-        // Try to get session from URL params (OAuth callback)
-        const params = new URLSearchParams(window.location.search)
-        const code = params.get('code')
+      const params = new URLSearchParams(window.location.search)
+      const code = params.get('code')
 
-        if (code) {
-          // Clean URL first
-          window.history.replaceState({}, '', window.location.pathname)
-          const { data, error } = await (supabase.auth as any).exchangeCodeForSession(code)
-          if (error) throw error
-          if (data?.session) {
-            setSession(data.session)
-            setUser(data.session.user)
-            setLoading(false)
-            return
+      if (code) {
+        window.history.replaceState({}, '', window.location.pathname)
+        const { data, error } = await (supabase.auth as any).exchangeCodeForSession(code)
+        if (!error && data?.session) {
+          setSession(data.session)
+          setUser(data.session.user)
+          // Auto-create profile for new user
+          const { data: existing } = await supabase.from('profiles').select('id').eq('id', data.session.user.id).single()
+          if (!existing) {
+            await supabase.from('profiles').insert({
+              id: data.session.user.id,
+              email: data.session.user.email,
+              nickname: '',
+              avatar_url: data.session.user.user_metadata?.avatar_url || '',
+              github: data.session.user.user_metadata?.user_name || '',
+            })
           }
+          setLoading(false)
+          return
         }
-
-        // Normal session check
-        const { data: { session } } = await supabase.auth.getSession()
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
-      } catch (err) {
-        console.error('Auth init error:', err)
-        setLoading(false)
       }
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        // Auto-create profile if missing
+        const { data: existing } = await supabase.from('profiles').select('id').eq('id', session.user.id).single()
+        if (!existing) {
+          await supabase.from('profiles').insert({
+            id: session.user.id,
+            email: session.user.email,
+            nickname: '',
+            avatar_url: session.user.user_metadata?.avatar_url || '',
+            github: session.user.user_metadata?.user_name || '',
+          })
+        }
+      }
+      setSession(session)
+      setUser(session?.user ?? null)
+      setLoading(false)
     }
 
     initAuth()
-  }, [])
 
-  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
-      // New user logged in: auto-create profile if not exists
       if (session?.user) {
-        const { data: existing } = await supabase
-          .from('profiles').select('id').eq('id', session.user.id).single()
+        const { data: existing } = await supabase.from('profiles').select('id').eq('id', session.user.id).single()
         if (!existing) {
           await supabase.from('profiles').insert({
             id: session.user.id,
@@ -72,6 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     })
+
     return () => subscription.unsubscribe()
   }, [])
 
