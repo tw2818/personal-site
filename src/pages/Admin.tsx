@@ -136,7 +136,10 @@ function UsersTab() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h2 style={{ fontSize: '1.4rem', fontWeight: 600, letterSpacing: '-0.02em', marginBottom: '1.5rem' }}>👥 账号管理</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 600, letterSpacing: '-0.02em', margin: 0 }}>👥 账号管理</h2>
+        <button onClick={fetchUsers} disabled={loading} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 8, padding: '0.3rem 0.8rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>🔄 刷新</button>
+      </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
         <input
