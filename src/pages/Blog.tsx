@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -29,12 +29,9 @@ export default function Blog() {
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'published' | 'drafts'>('published')
-  const [search, setSearch] = useState('')
   const [tags, setTags] = useState<Tag[]>([])
   const [selectedTag, setSelectedTag] = useState('')
-  void search
   const [searchQuery, setSearchQuery] = useState('')
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchBlogs = async () => {
     setLoading(true)
@@ -101,12 +98,7 @@ export default function Blog() {
   }, [])
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    setSearch(val)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      setSearchQuery(val)
-    }, 300)
+    setSearchQuery(e.target.value)
   }
 
   const togglePublish = async (blog: Blog) => {
@@ -188,7 +180,7 @@ export default function Blog() {
           <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>🔍</span>
           <input
             type="text"
-            value={search}
+            value={searchQuery}
             onChange={handleSearchChange}
             placeholder="搜索标题或标签..."
             style={{
