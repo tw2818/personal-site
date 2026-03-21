@@ -50,9 +50,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(data.session.user)
             setAccessToken(data.session.access_token)
             ensureProfile(data.session.user)
+            window.location.href = '/'
+            return
           }
           if (!cancelled) setLoading(false)
-          return
         }
 
         // Read token from localStorage immediately (sync, no hang)
