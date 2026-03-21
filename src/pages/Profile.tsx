@@ -50,6 +50,32 @@ export default function Profile() {
   const [blogCount, setBlogCount] = useState(0)
   const [projectCount, setProjectCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const avatarRef = useRef<HTMLDivElement>(null)
+  const glowX = useMotionValue(0)
+  const glowY = useMotionValue(0)
+  const avatarX = useMotionValue(0)
+  const avatarY = useMotionValue(0)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = cardRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    const dx = (e.clientX - cx) / (rect.width / 2)
+    const dy = (e.clientY - cy) / (rect.height / 2)
+    glowX.set(e.clientX - rect.left)
+    glowY.set(e.clientY - rect.top)
+    avatarX.set(dx * 12)
+    avatarY.set(dy * 12)
+  }
+
+  const handleMouseLeave = () => {
+    glowX.set(-999)
+    glowY.set(-999)
+    avatarX.set(0)
+    avatarY.set(0)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -105,41 +131,85 @@ export default function Profile() {
 
   return (
     <div className="page">
-      {/* Hero section - centered glass card */}
+      {/* Hero section - centered glass card with mouse tilt */}
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '4rem 2rem 3rem' }}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          style={{
-            textAlign: 'center',
-            background: 'rgba(var(--bg-rgb), 0.18)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid var(--border)',
-            borderRadius: 28,
-            padding: '3rem 2.5rem',
-            marginBottom: '2rem',
-          }}
         >
-          {/* Avatar */}
-          <motion.img
-            src={avatar}
-            alt="avatar"
+          <motion.div
+            ref={cardRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              textAlign: 'center',
+              background: 'rgba(var(--bg-rgb), 0.18)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid var(--border)',
+              borderRadius: 28,
+              padding: '3rem 2.5rem',
+              marginBottom: '2rem',
+              position: 'relative',
+              overflow: 'hidden',
+              rotateX: useTransform(avatarY, [-1, 1], [-6, 6]),
+              rotateY: useTransform(avatarX, [-1, 1], [6, -6]),
+              transformStyle: 'preserve-3d',
+              perspective: 800,
+            }}
+            transition={{ type: 'spring', stiffness: 200, damping: 30 }}
+          >
+          {/* Glow effect following mouse */}
+          <motion.div
+            style={{
+              position: 'absolute',
+              width: 300,
+              height: 300,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(0,113,227,0.12) 0%, transparent 70%)',
+              left: useTransform(glowX, v => v - 150),
+              top: useTransform(glowY, v => v - 150),
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          />
+
+          {/* Avatar with spring follow */}
+          <motion.div
+            ref={avatarRef}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
             style={{
               width: 120,
               height: 120,
               borderRadius: '50%',
-              objectFit: 'cover',
-              marginBottom: '1.5rem',
-              border: '3px solid var(--border)',
-              display: 'block',
               margin: '0 auto 1.5rem',
+              border: '3px solid var(--border)',
+              overflow: 'hidden',
+              position: 'relative',
+              zIndex: 1,
+              translateX: useTransform(avatarX, [-1, 1], [-8, 8]),
+              translateY: useTransform(avatarY, [-1, 1], [-8, 8]),
             }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-          />
+          >
+            <img
+              src={avatar}
+              alt="avatar"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          </motion.div>
+
+          {/* Name */}
+          <motion.h1
+            style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '0.6rem', color: 'var(--text)', position: 'relative', zIndex: 1 }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.5 }}
+          >
+            {name}
+          </motion.h1>
           {/* Name */}
           <motion.h1
             style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '0.6rem', color: 'var(--text)' }}
@@ -197,6 +267,7 @@ export default function Profile() {
               >✏️ 编辑资料</Link>
             </motion.div>
           )}
+        </motion.div>
         </motion.div>
       </div>
 
