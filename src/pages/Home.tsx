@@ -119,46 +119,71 @@ export default function Home() {
       </section>
 
       {/* Recent blogs teaser */}
-      <section className="section" style={{ background: 'var(--bg-secondary)', borderRadius: '24px', maxWidth: 1100, margin: '0 auto', border: '1px solid var(--border)' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          style={{ padding: '3rem' }}
-        >
-          <h2 className="section-title" style={{ marginBottom: '2rem' }}>最近的文章</h2>
-          {loading ? (
-            <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>加载中...</div>
-          ) : recentBlogs.length === 0 ? (
-            <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
-              <p>还没有已发布的文章</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {recentBlogs.map((blog, i) => (
-                <motion.div
-                  key={blog.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1, duration: 0.5 }}
-                >
-                  <Link to={`/blog/${blog.id}`}>
-                    <div className="item">
-                      <span className="item-date">{new Date(blog.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit' })}</span>
-                      <h3>{blog.title}</h3>
-                      <span className="item-arrow">→</span>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          )}
-          <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-            <Link to="/blog" className="btn btn-secondary">查看全部 →</Link>
+      <section style={{ maxWidth: 1100, margin: '0 auto', padding: '4rem 2rem' }}>
+        <h2 className="section-title" style={{ marginBottom: '2.5rem', fontSize: 'clamp(1.8rem, 4vw, 2.5rem)' }}>最近的文章</h2>
+        {loading ? (
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '3rem' }}>加载中...</div>
+        ) : recentBlogs.length === 0 ? (
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '3rem' }}>
+            <p>还没有已发布的文章</p>
           </div>
-        </motion.div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.2rem' }}>
+            {recentBlogs.map((blog, i) => (
+              <motion.div
+                key={blog.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+              >
+                <Link to={`/blog/${blog.id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{
+                    background: 'rgba(var(--bg-rgb), 0.15)',
+                    backdropFilter: 'blur(14px)',
+                    WebkitBackdropFilter: 'blur(14px)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius)',
+                    padding: '1.8rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = ''; }}
+                  >
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
+                      {new Date(blog.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </span>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 600, lineHeight: 1.4, color: 'var(--text)' }}>{blog.title}</h3>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--accent)', marginTop: 'auto' }}>阅读 →</span>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        )}
+        {recentBlogs.length > 0 && (
+          <div style={{ marginTop: '2.5rem', textAlign: 'center' }}>
+            <Link to="/blog" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.75rem 2rem',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius)',
+              background: 'rgba(var(--bg-rgb), 0.12)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              color: 'var(--text)',
+              fontSize: '0.95rem',
+              transition: 'all 0.3s ease',
+              textDecoration: 'none',
+            }}>查看全部文章 →</Link>
+          </div>
+        )}
       </section>
 
       <footer className="footer">
