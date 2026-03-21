@@ -477,33 +477,6 @@ export default function BlogDetail() {
                 </a>
               ))}
             </nav>
-
-            {/* Back to top */}
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.3rem',
-                background: 'rgba(var(--bg-rgb), 0.1)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid var(--border)',
-                borderRadius: 8,
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                fontSize: '0.75rem',
-                padding: '0.35rem 0.7rem',
-                transition: 'all 0.2s',
-                width: '100%',
-                justifyContent: 'flex-start',
-                marginTop: '0.5rem',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.2)' }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.1)' }}
-            >
-              ↑ 回到顶部
-            </button>
           </>
         )}
       </div>
@@ -745,6 +718,37 @@ export default function BlogDetail() {
             )}
         </div>
       </div>
+
+      {/* Back to top */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        title="回到顶部"
+        style={{
+          position: 'fixed',
+          bottom: '2rem',
+          right: '2rem',
+          width: 44,
+          height: 44,
+          borderRadius: '50%',
+          background: 'rgba(var(--bg-rgb), 0.15)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          border: '1px solid var(--border)',
+          color: 'var(--text)',
+          fontSize: '1.2rem',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          transition: 'all 0.3s',
+          zIndex: 100,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)' }}
+        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)' }}
+      >
+        ↑
+      </button>
     </div>
   )
 }
