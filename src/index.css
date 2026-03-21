@@ -102,6 +102,22 @@ a { color: inherit; text-decoration: none; }
 /* ── Layout ── */
 .page { padding-top: 80px; min-height: 100vh; background: transparent; }
 
+/* ── Blog Detail Content Card ── */
+.blog-detail-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+  .blog-detail-card {
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+}
+
 /* ── Hero ── */
 .hero {
   max-width: 980px;
@@ -662,29 +678,29 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,114,255,0.06) 0%, transparent 70%),
-              radial-gradient(ellipse 60% 50% at 80% 80%, rgba(255,107,107,0.04) 0%, transparent 60%),
-              radial-gradient(ellipse 50% 40% at 10% 90%, rgba(0,178,240,0.04) 0%, transparent 55%);
-  animation: gradientShift 25s ease-in-out infinite alternate;
+  background: radial-gradient(ellipse 90% 70% at 50% -5%, rgba(99,114,255,0.14) 0%, transparent 65%),
+              radial-gradient(ellipse 70% 55% at 85% 85%, rgba(255,107,107,0.10) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 45% at 5% 95%, rgba(0,178,240,0.08) 0%, transparent 55%);
+  animation: gradientShift 20s ease-in-out infinite alternate;
   pointer-events: none;
 }
 
 [data-theme="dark"] body::before {
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(60,80,255,0.12) 0%, transparent 70%),
-              radial-gradient(ellipse 60% 50% at 85% 15%, rgba(100,60,200,0.08) 0%, transparent 60%),
-              radial-gradient(ellipse 50% 40% at 15% 85%, rgba(0,140,220,0.06) 0%, transparent 55%);
-  animation: gradientShiftDark 20s ease-in-out infinite alternate;
+  background: radial-gradient(ellipse 90% 70% at 50% -5%, rgba(60,80,255,0.18) 0%, transparent 65%),
+              radial-gradient(ellipse 70% 55% at 88% 10%, rgba(120,60,220,0.14) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 45% at 8% 88%, rgba(0,140,220,0.10) 0%, transparent 55%);
+  animation: gradientShiftDark 18s ease-in-out infinite alternate;
 }
 
 @keyframes gradientShift {
   0%   { background-position: 0% 0%, 100% 100%, 0% 100%; opacity: 1; }
-  33%  { background-position: 60% 20%, 20% 60%, 80% 40%; opacity: 0.85; }
-  66%  { background-position: 30% 70%, 70% 30%, 10% 60%; opacity: 1; }
-  100% { background-position: 80% 40%, 40% 80%, 90% 10%; opacity: 0.9; }
+  33%  { background-position: 55% 15%, 15% 65%, 85% 35%; opacity: 0.9; }
+  66%  { background-position: 25% 75%, 75% 25%, 8% 65%; opacity: 1; }
+  100% { background-position: 75% 35%, 35% 85%, 92% 8%; opacity: 0.92; }
 }
 
 @keyframes gradientShiftDark {
-  0%   { background-position: 0% 0%, 100% 100%, 0% 100%; opacity: 0.8; }
-  50%  { background-position: 70% 30%, 30% 70%, 60% 20%; opacity: 1; }
-  100% { background-position: 40% 80%, 80% 40%, 20% 80%; opacity: 0.85; }
+  0%   { background-position: 0% 0%, 100% 100%, 0% 100%; opacity: 0.85; }
+  50%  { background-position: 65% 25%, 25% 75%, 70% 15%; opacity: 1; }
+  100% { background-position: 35% 85%, 85% 35%, 15% 85%; opacity: 0.88; }
 }
