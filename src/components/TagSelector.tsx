@@ -112,6 +112,9 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
         return
       }
 
+      const rawToken = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
+      const token = rawToken ? JSON.parse(rawToken)?.access_token : null
+      if (!token) { setInputError('请先登录'); setCreating(false); return }
       setCreating(true)
       const slug = slugify(inputTrimmed)
       const color = randomColor()
@@ -119,8 +122,8 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
         const res = await fetch(`${SUPABASE_URL}/rest/v1/tags`, {
           method: 'POST',
           headers: {
-            // No apikey — Authorization Bearer token establishes proper auth context for RLS
-            'Authorization': `Bearer ${accessToken}`,
+            'apikey': ANON_KEY,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'Prefer': 'return=representation',
           },

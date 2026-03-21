@@ -167,6 +167,7 @@ export default function BlogDetail() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          apikey: ANON_KEY,
           Authorization: `Bearer ${token}`,
           Prefer: 'return=representation',
         },
@@ -230,7 +231,7 @@ export default function BlogDetail() {
     try {
       let res = await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { apikey: ANON_KEY, Authorization: `Bearer ${token}` },
       })
       if (res.status === 401) {
         const newToken = await refreshToken()
@@ -261,6 +262,7 @@ export default function BlogDetail() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          apikey: ANON_KEY,
           Authorization: `Bearer ${token}`,
           Prefer: 'return=representation',
         },

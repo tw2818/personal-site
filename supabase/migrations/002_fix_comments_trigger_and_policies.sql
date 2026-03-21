@@ -1,39 +1,31 @@
--- Migration: Fix comments INSERT policy (USING → WITH CHECK)
--- ROOT CAUSE:
--- The INSERT policy was using: USING (auth.jwt() ->> 'sub') = user_id::text
--- USING clause checks OLD row state BEFORE the BEFORE INSERT trigger fires.
--- Since OLD row has user_id=NULL, (NULL = 'xxx') always false → 403 Forbidden.
--- FIX: Change INSERT policy to use WITH CHECK (validates NEW row after trigger).
+-- Migration: Fix comments INSERT - remove broken SECURITY DEFINER trigger
+-- ROOT CAUSE of previous approach:
+-- The trigger used SECURITY DEFINER, but auth.uid() returns NULL when called
+-- inside a SECURITY DEFINER function (JWT context not properly propagated).
+-- Result: trigger sets user_id=NULL, policy checks auth.uid()=NULL → FAIL.
 --
--- Also fix: auth.jwt() returns text (not jsonb), so use ::jsonb cast before ->>
--- Fix: ->> cannot be chained directly; use -> (returns jsonb) then ->> (returns text)
+-- NEW APPROACH:
+-- 1. Frontend extracts user_id from JWT sub claim and sends it explicitly
+-- 2. Trigger removed (not needed - frontend provides user_id)
+-- 3. Policy checks: user is authenticated AND user_id matches their JWT sub
+--    (this prevents users from impersonating others)
 
--- Drop and recreate trigger
+-- Remove the broken trigger and function
 DROP TRIGGER IF EXISTS set_comment_user_id ON comments;
 DROP FUNCTION IF EXISTS set_comment_user_id();
 
-CREATE OR REPLACE FUNCTION set_comment_user_id()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.user_id = auth.uid();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE TRIGGER set_comment_user_id
-  BEFORE INSERT ON comments
-  FOR EACH ROW EXECUTE FUNCTION set_comment_user_id();
-
--- INSERT policy: WITH CHECK validates NEW row (after trigger sets user_id)
+-- INSERT policy: allows authenticated users to insert comments
+-- Frontend sends user_id (from JWT sub), policy verifies it matches auth.uid()
 DROP POLICY IF EXISTS authenticated_insert_comments ON comments;
 CREATE POLICY authenticated_insert_comments ON comments
   FOR INSERT TO authenticated
   WITH CHECK (
     auth.uid() IS NOT NULL
-    AND auth.uid() = user_id
+    AND user_id = auth.uid()
   );
 
 -- UPDATE policy: admin (tw2818) or blog author can pin/unpin
+-- Keep using auth.jwt()::jsonb for admin check (GitHub user_name)
 DROP POLICY IF EXISTS admin_update_comments ON comments;
 CREATE POLICY admin_update_comments ON comments
   FOR UPDATE TO authenticated
