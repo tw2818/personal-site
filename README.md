@@ -1,4 +1,4 @@
-# personal-site
+# <img src="https://raw.githubusercontent.com/tw2818/personal-site/main/public/logo.svg" width="80" height="80" style="vertical-align:middle" /> tweb
 
 一个简洁优雅的个人网站，基于 React + TypeScript + Supabase + Vercel 构建。
 
