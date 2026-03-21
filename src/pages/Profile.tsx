@@ -63,8 +63,8 @@ export default function Profile() {
         if (cancelled) return
 
         const [bc, pc] = adminId ? await Promise.all([
-          apiFetch(`blogs?select=id&user_id=eq.${encodeURIComponent(adminId)}&published=eq.true&limit=1`),
-          apiFetch(`projects?select=id&user_id=eq.${encodeURIComponent(adminId)}&limit=1`),
+          apiFetch(`blogs?select=id&user_id=eq.${encodeURIComponent(adminId)}&published=eq.true`),
+          apiFetch(`projects?select=id&user_id=eq.${encodeURIComponent(adminId)}`),
         ]) : [null, null]
         if (cancelled) return
         setProfile(adminProfile)
