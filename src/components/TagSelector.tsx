@@ -119,8 +119,8 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
         const res = await fetch(`${SUPABASE_URL}/rest/v1/tags`, {
           method: 'POST',
           headers: {
-            apikey: ANON_KEY,
-            Authorization: `Bearer ${accessToken}`,
+            // No apikey — Authorization Bearer token establishes proper auth context for RLS
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
             'Prefer': 'return=representation',
           },

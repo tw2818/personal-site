@@ -20,6 +20,9 @@ export default function Login() {
     setError(null)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/login`,
+      },
     })
     if (oauthError) {
       setError(oauthError.message)

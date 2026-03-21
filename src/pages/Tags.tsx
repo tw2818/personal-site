@@ -85,8 +85,8 @@ export default function Tags() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/tags`, {
         method: 'POST',
         headers: {
-          apikey: ANON_KEY,
-          Authorization: `Bearer ${accessToken}`,
+          // No apikey — Authorization Bearer token establishes proper auth context for RLS
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
           'Prefer': 'return=representation',
         },
@@ -118,8 +118,8 @@ export default function Tags() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/tags?id=eq.${tag.id}`, {
         method: 'DELETE',
         headers: {
-          apikey: ANON_KEY,
-          Authorization: `Bearer ${accessToken}`,
+          // No apikey — Authorization Bearer token establishes proper auth context for RLS
+          'Authorization': `Bearer ${accessToken}`,
         },
       })
       if (res.ok || res.status === 204) {
