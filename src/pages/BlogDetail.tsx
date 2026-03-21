@@ -3,10 +3,34 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeSlug from 'rehype-slug'
 import { useAuth } from '../contexts/AuthContext'
 import { SUPABASE_URL, ANON_KEY, ADMIN_USER } from '../lib/config'
 
+interface Heading {
+  id: string
+  text: string
+  level: number
+}
 
+function parseHeadings(content: string): Heading[] {
+  const lines = content.split('\n')
+  const result: Heading[] = []
+  for (const line of lines) {
+    const match = line.match(/^(#{1,6})\s+(.+)$/)
+    if (match) {
+      const level = match[1].length
+      const text = match[2].replace(/[*_`~]/g, '').trim()
+      const id = text
+        .toLowerCase()
+        .replace(/[^\w\u4e00-\u9fff-]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+      result.push({ id, text, level })
+    }
+  }
+  return result
+}
 
 // Read token directly from localStorage to avoid stale/null React state
 const getLocalToken = () => {
@@ -75,12 +99,14 @@ export default function BlogDetail() {
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [readingProgress, setReadingProgress] = useState(0)
   const [showBackToTop, setShowBackToTop] = useState(false)
+  const [headings, setHeadings] = useState<Heading[]>([])
+  const [activeHeading, setActiveHeading] = useState('')
 
     const isAdmin = user?.user_metadata?.user_name === ADMIN_USER
   const isAuthor = blog?.user_id === user?.id
   const canModerate = isAdmin || isAuthor
 
-  // Reading progress & back to top visibility
+  // Reading progress & back to top visibility & scroll spy
   useEffect(() => {
     const updateProgress = () => {
       const el = document.documentElement
@@ -88,6 +114,15 @@ export default function BlogDetail() {
       const height = el.scrollHeight - el.clientHeight
       setReadingProgress(height > 0 ? Math.round((scrollTop / height) * 100) : 0)
       setShowBackToTop(scrollTop > 400)
+      // Scroll spy: find the heading currently in view
+      const headingEls = document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4')
+      let current = ''
+      for (const h of headingEls) {
+        if ((h as HTMLElement).offsetTop - 120 <= scrollTop) {
+          current = h.id
+        }
+      }
+      setActiveHeading(current)
     }
     window.addEventListener('scroll', updateProgress, { passive: true })
     return () => window.removeEventListener('scroll', updateProgress)
@@ -116,6 +151,8 @@ export default function BlogDetail() {
         const data = await res.json()
         if (data?.length > 0) {
           setBlog(data[0])
+          const parsed = parseHeadings(data[0].content || '')
+          setHeadings(parsed)
         }
         setLoading(false)
       } catch {
@@ -368,13 +405,53 @@ export default function BlogDetail() {
       <div style={{ position: 'fixed', top: 0, height: 3, width: readingProgress + '%', background: 'var(--accent)', zIndex: 200 }} />
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(var(--bg-rgb), 0.1)', zIndex: 199 }} />
 
-      {/* Main content: centered article */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem' }}>
+      {/* Main content: article + left TOC */}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 2rem' }}>
+        <div style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start' }}>
 
-        {/* Article content */}
-        <div>
-          {/* Back button */}
-          <button
+          {/* Left TOC sidebar */}
+          {headings.length > 0 && (
+            <div style={{ width: 180, flexShrink: 0, position: 'sticky', top: 80, maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>目录</div>
+              <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                {headings.map(h => (
+                  <a
+                    key={h.id}
+                    href={`#${h.id}`}
+                    onClick={e => {
+                      e.preventDefault()
+                      const el = document.getElementById(h.id)
+                      if (el) {
+                        const top = el.getBoundingClientRect().top + window.scrollY - 90
+                        window.scrollTo({ top, behavior: 'smooth' })
+                      }
+                    }}
+                    style={{
+                      display: 'block',
+                      fontSize: h.level === 1 ? '0.8rem' : h.level === 2 ? '0.75rem' : '0.7rem',
+                      fontWeight: h.level === 1 ? 600 : 400,
+                      color: activeHeading === h.id ? 'var(--accent)' : 'var(--text-secondary)',
+                      paddingLeft: (h.level - 1) * 0.75 + 'rem',
+                      paddingTop: '0.2rem',
+                      paddingBottom: '0.2rem',
+                      borderLeft: '2px solid',
+                      borderLeftColor: activeHeading === h.id ? 'var(--accent)' : 'transparent',
+                      transition: 'all 0.2s',
+                      textDecoration: 'none',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {h.text}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          )}
+
+          {/* Article content */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Back button */}
+            <button
             onClick={() => navigate(-1)}
             style={{
               display: 'inline-flex',
@@ -444,8 +521,9 @@ export default function BlogDetail() {
           </div>
 
           {/* Article body */}
-          <div className="markdown-body" style={{ lineHeight: 1.9, fontSize: '1.05rem', color: 'var(--text)' }}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{blog.content || ''}</ReactMarkdown>
+          <div className="markdown-body" style={{ lineHeight: 1.9, fontSize: '1.05rem', color: 'var(--text)' }} id="article-content">
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]}>{blog.content || ''}</ReactMarkdown>
+          </div>
           </div>
         </div>
       </div>
