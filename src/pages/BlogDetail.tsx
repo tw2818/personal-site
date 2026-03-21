@@ -427,7 +427,6 @@ export default function BlogDetail() {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'center',
             gap: '0.4rem',
             padding: '0.5rem 1rem',
             borderRadius: 10,
@@ -438,6 +437,7 @@ export default function BlogDetail() {
             fontSize: '0.85rem',
             fontWeight: 500,
             boxShadow: '0 2px 12px rgba(0,113,227,0.3)',
+            width: 'auto',
           }}
         >
           ← 返回
