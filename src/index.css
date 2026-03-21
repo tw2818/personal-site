@@ -100,7 +100,7 @@ a { color: inherit; text-decoration: none; }
 .theme-toggle:hover { transform: scale(1.1); }
 
 /* ── Layout ── */
-.page { padding-top: 80px; min-height: 100vh; background: var(--bg); }
+.page { padding-top: 80px; min-height: 100vh; background: rgba(var(--bg-rgb), 0.85); backdrop-filter: blur(8px); }
 
 /* ── Blog Detail Content Card ── */
 .blog-detail-card {
