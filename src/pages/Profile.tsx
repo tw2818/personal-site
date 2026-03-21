@@ -96,7 +96,7 @@ export default function Profile() {
     }
   }, [user])
 
-  // Mouse tilt effect via direct DOM manipulation
+  // Mouse tilt effect via direct DOM manipulation - runs once after mount
   useEffect(() => {
     const el = cardRef.current
     if (!el) return
@@ -109,8 +109,8 @@ export default function Profile() {
       const ry = (e.clientX - cx) / (rect.width / 2)
       el.style.setProperty('--rx', rx.toFixed(3))
       el.style.setProperty('--ry', ry.toFixed(3))
-      el.style.setProperty('--gx', (e.clientX - rect.left).toFixed(1))
-      el.style.setProperty('--gy', (e.clientY - rect.top).toFixed(1))
+      el.style.setProperty('--gx', `${(e.clientX - rect.left).toFixed(1)}px`)
+      el.style.setProperty('--gy', `${(e.clientY - rect.top).toFixed(1)}px`)
       el.style.transform = `perspective(800px) rotateX(${-rx * 6}deg) rotateY(${ry * 6}deg)`
     }
     const onLeave = () => {
@@ -125,7 +125,7 @@ export default function Profile() {
       el.removeEventListener('mousemove', onMove as EventListener)
       el.removeEventListener('mouseleave', onLeave)
     }
-  }, [loading])
+  }, [])
 
 
   if (loading) {
@@ -173,12 +173,12 @@ export default function Profile() {
                 height: 300,
                 borderRadius: '50%',
                 background: 'radial-gradient(circle, rgba(0,113,227,0.12) 0%, transparent 70%)',
-                left: 'var(--gx, 50%)',
-                top: 'var(--gy, 50%)',
-                transform: 'translate(var(--gx, 0), var(--gy, 0))',
+                left: 'var(--gx, 0px)',
+                top: 'var(--gy, 0px)',
+                transform: 'translate(-50%, -50%)',
                 pointerEvents: 'none',
                 zIndex: 0,
-                transition: 'left 0.05s linear, top 0.05s linear',
+                transition: 'left 0.08s linear, top 0.08s linear',
               }}
             />
 
