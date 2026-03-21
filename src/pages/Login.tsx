@@ -1,10 +1,19 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 
 export default function Login() {
+  const { user, loading } = useAuth()
   const [status, setStatus] = useState<'idle' | 'redirecting' | 'exchanging'>('idle')
   const [error, setError] = useState<string | null>(null)
+
+  // Redirect to home if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      window.location.replace('/')
+    }
+  }, [user, loading])
 
   // Detect OAuth code in URL — AuthContext handles exchange, we just show UI
   useEffect(() => {
