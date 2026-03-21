@@ -76,41 +76,125 @@ export default function Profile() {
 
   return (
     <div className="page">
-      <div className="profile-header">
-        <motion.img src={avatar} alt="avatar" className="avatar"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} />
-        <motion.h1 className="section-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }} viewport={{ once: true }} style={{ marginBottom: '0.5rem' }}>
-          {name}
-        </motion.h1>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35, duration: 0.4 }} viewport={{ once: true }} style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-          {profile?.bio || '这个人很懒，什么都没写'}
-        </motion.p>
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.4 }} viewport={{ once: true }} style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2rem' }}>
-          {profile?.github && <a href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer" className="btn btn-secondary">🐙 GitHub</a>}
-          {profile?.bilibili && <span className="btn btn-secondary">📺 {profile.bilibili}</span>}
-          {profile?.twitter && <span className="btn btn-secondary">🐦 {profile.twitter}</span>}
-        </motion.div>
-        {user && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.3 }} viewport={{ once: true }}>
-            <Link to="/admin" className="btn btn-primary">✏️ 编辑资料</Link>
+      {/* Hero section - centered glass card */}
+      <div style={{ maxWidth: 700, margin: '0 auto', padding: '4rem 2rem 3rem' }}>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          style={{
+            textAlign: 'center',
+            background: 'rgba(var(--bg-rgb), 0.18)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid var(--border)',
+            borderRadius: 28,
+            padding: '3rem 2.5rem',
+            marginBottom: '2rem',
+          }}
+        >
+          {/* Avatar */}
+          <motion.img
+            src={avatar}
+            alt="avatar"
+            style={{
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              marginBottom: '1.5rem',
+              border: '3px solid var(--border)',
+              display: 'block',
+              margin: '0 auto 1.5rem',
+            }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          />
+          {/* Name */}
+          <motion.h1
+            style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '0.6rem', color: 'var(--text)' }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.5 }}
+          >
+            {name}
+          </motion.h1>
+          {/* Bio */}
+          <motion.p
+            style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '2rem', maxWidth: 480, margin: '0 auto 2rem' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25, duration: 0.4 }}
+          >
+            {profile?.bio || '这个人很懒，什么都没写'}
+          </motion.p>
+          {/* Social links */}
+          <motion.div
+            style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: user ? '1.5rem' : 0 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.4 }}
+          >
+            {profile?.github && (
+              <a href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem', textDecoration: 'none', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)'; e.currentTarget.style.transform = '' }}
+              >🐙 GitHub</a>
+            )}
+            {profile?.bilibili && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem' }}>📺 {profile.bilibili}</span>
+            )}
+            {profile?.twitter && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem' }}>🐦 {profile.twitter}</span>
+            )}
           </motion.div>
-        )}
+          {user && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.45, duration: 0.3 }}
+            >
+              <Link to="/admin"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.2rem', background: 'var(--accent)', border: 'none', borderRadius: 10, color: '#fff', fontSize: '0.88rem', textDecoration: 'none', fontWeight: 500 }}
+              >✏️ 编辑资料</Link>
+            </motion.div>
+          )}
+        </motion.div>
       </div>
 
-      <div className="section">
-        <div className="card-grid">
-          {[
-            { icon: '📝', title: `${blogCount} 篇博客`, desc: '技术思考与生活记录' },
-            { icon: '💼', title: `${projectCount} 个项目`, desc: '有趣的实验与作品' },
-            { icon: '🎓', title: '前端开发者', desc: '热爱技术，热爱生活' },
-          ].map((item, i) => (
-            <motion.div key={item.title} className="card" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6 + i * 0.1, duration: 0.4, ease: 'easeOut' }} viewport={{ once: true }} whileHover={{ scale: 1.02 }}>
-              <div className="card-icon">{item.icon}</div>
-              <h3>{item.title}</h3>
-              <p>{item.desc}</p>
-            </motion.div>
-          ))}
-        </div>
+      {/* Stats row */}
+      <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 2rem 4rem', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        {[
+          { label: '博客', value: blogCount, icon: '📝' },
+          { label: '项目', value: projectCount, icon: '💼' },
+          { label: '身份', value: '开发者', icon: '🎓' },
+        ].map((item, i) => (
+          <motion.div
+            key={item.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 + i * 0.1, duration: 0.4 }}
+            style={{
+              background: 'rgba(var(--bg-rgb), 0.18)',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              border: '1px solid var(--border)',
+              borderRadius: 18,
+              padding: '1.5rem',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.4rem',
+            }}
+          >
+            <div style={{ fontSize: '1.8rem' }}>{item.icon}</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)' }}>{item.value}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.label}</div>
+          </motion.div>
+        ))}
       </div>
     </div>
   )
