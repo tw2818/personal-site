@@ -194,11 +194,7 @@ function UsersTab() {
                       <button
                         onClick={() => handleDelete(user.id, user.email || user.nickname || '该用户')}
                         disabled={deleting === user.id}
-                        style={{
-                          background: 'transparent', border: '1px solid #e94560', color: '#e94560',
-                          borderRadius: 8, padding: '0.4rem 0.8rem', cursor: deleting === user.id ? 'not-allowed' : 'pointer',
-                          opacity: deleting === user.id ? 0.5 : 1, fontSize: '0.85rem',
-                        }}
+                        className="btn-delete"
                       >
                         {deleting === user.id ? '删除中...' : '🗑 删除'}
                       </button>

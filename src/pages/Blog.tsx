@@ -147,30 +147,45 @@ export default function Blog() {
 
         {/* Tag filter */}
         {tags.length > 0 && (
-          <div style={{ marginBottom: '1rem' }}>
-            <select
-              value={selectedTag}
-              onChange={e => {
-                setSelectedTag(e.target.value)
-                setSearchQuery(e.target.value)
-              }}
+          <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => { setSelectedTag(''); setSearchQuery('') }}
               style={{
-                padding: '0.45rem 0.75rem',
-                border: '1px solid var(--border)',
-                borderRadius: 10,
-                background: 'var(--bg-secondary)',
-                color: 'var(--text)',
-                fontSize: '0.875rem',
-                outline: 'none',
+                padding: '0.35rem 0.9rem',
+                borderRadius: 980,
+                border: selectedTag === '' ? '1px solid var(--accent)' : '1px solid var(--border)',
+                background: selectedTag === '' ? 'var(--accent)' : 'var(--bg-secondary)',
+                color: selectedTag === '' ? '#fff' : 'var(--text-secondary)',
+                fontSize: '0.8rem',
                 cursor: 'pointer',
-                minWidth: 140,
+                transition: 'all 0.2s',
+                fontWeight: 500,
               }}
             >
-              <option value="">🏷️ 全部标签</option>
-              {tags.map(tag => (
-                <option key={tag.id} value={tag.slug}>{tag.name}</option>
-              ))}
-            </select>
+              🏷️ 全部
+            </button>
+            {tags.map(tag => (
+              <button
+                key={tag.id}
+                onClick={() => {
+                  setSelectedTag(tag.slug)
+                  setSearchQuery(tag.slug)
+                }}
+                style={{
+                  padding: '0.35rem 0.9rem',
+                  borderRadius: 980,
+                  border: selectedTag === tag.slug ? '1px solid var(--accent)' : '1px solid var(--border)',
+                  background: selectedTag === tag.slug ? 'var(--accent)' : 'var(--bg-secondary)',
+                  color: selectedTag === tag.slug ? '#fff' : 'var(--text-secondary)',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  fontWeight: 500,
+                }}
+              >
+                {tag.name}
+              </button>
+            ))}
           </div>
         )}
 
@@ -182,20 +197,34 @@ export default function Blog() {
             value={searchQuery}
             onChange={handleSearchChange}
             placeholder="搜索标题或标签..."
+            className="search-input"
             style={{
               width: '100%', padding: '0.6rem 1rem 0.6rem 2.5rem',
               border: '1px solid var(--border)', borderRadius: 12,
               background: 'var(--bg-secondary)', color: 'var(--text)',
-              fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s',
+              fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
               boxSizing: 'border-box',
             }}
-            onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+            onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(0,113,227,0.15)' }}
+            onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
           />
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem' }}>搜索中...</div>
+          <div className="item-list">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="skeleton-item">
+                <div className="skeleton-item-date" />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div className="skeleton-item-title" />
+                  <div className="skeleton-item-tags">
+                    <div className="skeleton-tag" />
+                    <div className="skeleton-tag" style={{ width: 40 }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : blogs.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
             <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</p>

@@ -355,8 +355,8 @@ export default function BlogDetail() {
           </div>
 
           {/* Comments Section */}
-          <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+          <div style={{ marginTop: '3.5rem', paddingTop: '2.5rem', borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
               <h2 style={{ fontSize: '1.3rem', fontWeight: 600 }}>评论</h2>
               <span style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)', padding: '0.15rem 0.6rem', borderRadius: 12, fontSize: '0.8rem' }}>
                 {comments.length}
@@ -365,12 +365,12 @@ export default function BlogDetail() {
 
             {/* Comment Form */}
             {user ? (
-              <form onSubmit={handleSubmitComment} style={{ marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+              <form onSubmit={handleSubmitComment} style={{ marginBottom: '2.5rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                   <img
                     src={getAvatar({ nickname: user.user_metadata?.nickname || user.user_metadata?.user_name || user.email?.split('@')[0] || '?', avatar_url: user.user_metadata?.avatar_url || '', content: '', created_at: '', pinned: false, id: '', blog_id: '', user_id: '' })}
                     alt="avatar"
-                    style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, marginTop: 4 }}
+                    style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0, marginTop: 4, border: '2px solid var(--border)' }}
                   />
                   <div style={{ flex: 1 }}>
                     <textarea
@@ -380,7 +380,7 @@ export default function BlogDetail() {
                       rows={3}
                       style={{
                         width: '100%',
-                        padding: '0.75rem 1rem',
+                        padding: '0.85rem 1.1rem',
                         borderRadius: 12,
                         border: '1px solid var(--border)',
                         background: 'var(--bg-secondary)',
@@ -389,14 +389,14 @@ export default function BlogDetail() {
                         fontFamily: 'inherit',
                         resize: 'vertical',
                         outline: 'none',
-                        transition: 'border-color 0.2s',
+                        transition: 'border-color 0.2s, box-shadow 0.2s',
                       }}
-                      onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-                      onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                      onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(0,113,227,0.15)' }}
+                      onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
                     />
                     {submitError && <p style={{ color: '#ff3b30', fontSize: '0.85rem', marginTop: '0.5rem' }}>{submitError}</p>}
                     {submitSuccess && <p style={{ color: '#34c759', fontSize: '0.85rem', marginTop: '0.5rem' }}>评论发布成功！</p>}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
                       <button
                         type="submit"
                         disabled={!newComment.trim() || submitting}
@@ -419,7 +419,7 @@ export default function BlogDetail() {
                 </div>
               </form>
             ) : (
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem', padding: '0.75rem 1rem', background: 'var(--bg-secondary)', borderRadius: 12 }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2.5rem', padding: '1rem 1.25rem', background: 'var(--bg-secondary)', borderRadius: 12 }}>
                 登录后可以发表评论
               </p>
             )}
@@ -434,7 +434,7 @@ export default function BlogDetail() {
                 还没有评论，来抢沙发！
               </p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {sortedComments.map(comment => (
                   <motion.div
                     key={comment.id}
@@ -442,23 +442,26 @@ export default function BlogDetail() {
                     animate={{ opacity: 1, y: 0 }}
                     style={{
                       display: 'flex',
-                      gap: '0.75rem',
-                      padding: '1rem',
-                      borderRadius: 12,
+                      gap: '1rem',
+                      padding: '1.25rem',
+                      borderRadius: 16,
                       background: comment.pinned ? 'rgba(0,113,227,0.06)' : 'var(--bg-secondary)',
                       border: comment.pinned ? '1px solid rgba(0,113,227,0.2)' : '1px solid transparent',
+                      transition: 'box-shadow 0.2s',
                     }}
+                    onMouseEnter={e => { if (!comment.pinned) (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)' }}
+                    onMouseLeave={e => { if (!comment.pinned) (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
                   >
                     <img
                       src={getAvatar(comment)}
                       alt={comment.nickname}
-                      style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0 }}
+                      style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0, border: '2px solid var(--border)' }}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{comment.nickname || '匿名用户'}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{comment.nickname || '匿名用户'}</span>
                         {comment.pinned && (
-                          <span style={{ background: 'var(--accent)', color: '#fff', padding: '0.1rem 0.4rem', borderRadius: 6, fontSize: '0.7rem', fontWeight: 500 }}>
+                          <span style={{ background: 'var(--accent)', color: '#fff', padding: '0.1rem 0.5rem', borderRadius: 6, fontSize: '0.7rem', fontWeight: 500 }}>
                             置顶
                           </span>
                         )}
@@ -466,11 +469,11 @@ export default function BlogDetail() {
                           {formatTime(comment.created_at)}
                         </span>
                       </div>
-                      <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--text)', wordBreak: 'break-word' }}>
+                      <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: 'var(--text)', wordBreak: 'break-word' }}>
                         {comment.content}
                       </p>
                       {canModerate && (
-                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
                           <button
                             onClick={() => handlePinComment(comment)}
                             style={{
@@ -479,7 +482,7 @@ export default function BlogDetail() {
                               background: 'none',
                               border: 'none',
                               cursor: 'pointer',
-                              padding: '0.2rem 0.4rem',
+                              padding: '0.25rem 0.5rem',
                               borderRadius: 6,
                               transition: 'all 0.2s',
                             }}
@@ -490,18 +493,16 @@ export default function BlogDetail() {
                           </button>
                           <button
                             onClick={() => handleDeleteComment(comment.id)}
+                            className="btn-delete"
                             style={{
                               fontSize: '0.75rem',
-                              color: 'var(--text-secondary)',
                               background: 'none',
                               border: 'none',
                               cursor: 'pointer',
-                              padding: '0.2rem 0.4rem',
+                              padding: '0.25rem 0.5rem',
                               borderRadius: 6,
                               transition: 'all 0.2s',
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.color = '#ff3b30'; e.currentTarget.style.background = 'var(--bg)' }}
-                            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'none' }}
                           >
                             删除
                           </button>
