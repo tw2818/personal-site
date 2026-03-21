@@ -62,7 +62,19 @@ export default function Tags() {
         usage_count: usageMap[tag.slug] || 0,
       }))
 
-      setTags(tagsWithCount)
+      // Auto-delete tags with zero usage
+      const unusedTags = tagsWithCount.filter(t => t.usage_count === 0)
+      if (unusedTags.length > 0 && accessToken) {
+        const unusedIds = unusedTags.map(t => t.id).join(',')
+        await fetch(`${SUPABASE_URL}/rest/v1/tags?id=in.(${unusedIds})`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${accessToken}` },
+        })
+        // Remove deleted tags from state
+        setTags(tagsWithCount.filter(t => t.usage_count > 0))
+      } else {
+        setTags(tagsWithCount)
+      }
     } catch (err) {
       console.error(err)
     } finally {
