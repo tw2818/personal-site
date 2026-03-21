@@ -1,23 +1,27 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useMotionValue, useSpring, useTransform, animate } from 'framer-motion'
+import { motion, useMotionValue, useTransform } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { SUPABASE_URL, ANON_KEY, ADMIN_USER } from '../lib/config'
 import { supabase } from '../lib/supabase'
 
 
 function AnimatedCounter({ target, duration = 1.5 }: { target: number; duration?: number }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const motionVal = useMotionValue(0)
-  const spring = useSpring(motionVal, { stiffness: 75, damping: 20 })
-  const display = useTransform(spring, (v) => Math.round(v).toString())
+  const [display, setDisplay] = useState(0)
 
   useEffect(() => {
-    const controls = animate(motionVal, target, { duration, ease: 'easeOut' })
-    return controls.stop
-  }, [target, motionVal, duration])
+    let start = 0
+    const startTime = performance.now()
+    const step = (now: number) => {
+      const progress = Math.min((now - startTime) / (duration * 1000), 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setDisplay(Math.round(start + (target - start) * eased))
+      if (progress < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }, [target, duration])
 
-  return <motion.div ref={ref}>{display}</motion.div>
+  return <span>{display}</span>
 }
 
 
