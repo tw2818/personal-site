@@ -686,26 +686,27 @@ body::before {
   pointer-events: none;
   border-radius: 50%;
   filter: blur(80px);
+  opacity: var(--aurora-opacity, 0.55);
+  mix-blend-mode: var(--aurora-blend, normal);
+  background:
+    var(--aurora-a),
+    var(--aurora-b),
+    var(--aurora-c);
   animation: auroraMove 28s ease-in-out infinite alternate;
 }
-
-/* Dark mode: vivid aurora directly on pure black, no blend mode */
-[data-theme="dark"] body::before {
-  background:
-    radial-gradient(ellipse 70% 60% at 20% 25%, rgba(110,80,255,0.85) 0%, transparent 65%),
-    radial-gradient(ellipse 60% 50% at 75% 20%, rgba(50,150,255,0.8) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 65% at 55% 80%, rgba(255,80,150,0.75) 0%, transparent 65%);
-  opacity: 0.35;
+:root {
+  --aurora-a: radial-gradient(ellipse 60% 50% at 20% 25%, rgba(130,100,255,0.4) 0%, transparent 65%);
+  --aurora-b: radial-gradient(ellipse 50% 40% at 75% 20%, rgba(80,180,255,0.3) 0%, transparent 60%);
+  --aurora-c: radial-gradient(ellipse 45% 55% at 55% 80%, rgba(255,130,180,0.25) 0%, transparent 65%);
+  --aurora-opacity: 0.55;
+  --aurora-blend: multiply;
 }
-
-/* Light mode: subtle aurora with multiply blend */
-body::before {
-  background:
-    radial-gradient(ellipse 60% 50% at 20% 25%, rgba(130,100,255,0.4) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 40% at 75% 20%, rgba(80,180,255,0.3) 0%, transparent 60%),
-    radial-gradient(ellipse 45% 55% at 55% 80%, rgba(255,130,180,0.25) 0%, transparent 65%);
-  opacity: 0.55;
-  mix-blend-mode: multiply;
+[data-theme="dark"] {
+  --aurora-a: radial-gradient(ellipse 70% 60% at 20% 25%, rgba(110,80,255,0.85) 0%, transparent 65%);
+  --aurora-b: radial-gradient(ellipse 60% 50% at 75% 20%, rgba(50,150,255,0.8) 0%, transparent 60%);
+  --aurora-c: radial-gradient(ellipse 55% 65% at 55% 80%, rgba(255,80,150,0.75) 0%, transparent 65%);
+  --aurora-opacity: 0.5;
+  --aurora-blend: normal;
 }
 
 @keyframes auroraMove {
