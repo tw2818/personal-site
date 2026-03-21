@@ -400,7 +400,18 @@ export default function BlogDetail() {
 
           {/* Cover image */}
           {blog.cover_url && (
-            <img src={blog.cover_url} alt={blog.title} style={{ width: '100%', maxHeight: 480, objectFit: 'cover', borderRadius: 20, display: 'block', marginBottom: '2rem' }} />
+            <img
+              src={blog.cover_url}
+              alt={blog.title}
+              style={{
+                width: '100%',
+                aspectRatio: '21 / 9',
+                objectFit: 'cover',
+                borderRadius: 12,
+                display: 'block',
+                marginBottom: '2rem',
+              }}
+            />
           )}
 
           {/* Title */}
