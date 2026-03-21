@@ -87,15 +87,14 @@ export default function EditBlog() {
         updated_at: new Date().toISOString(),
       },
       `id=eq.${encodeURIComponent(id)}`,
-      accessToken
     )
     setSaving(false)
     navigate('/blog')
   }
 
   const handleDelete = async () => {
-    if (!id || !accessToken || !confirm('确定删除这篇文章？')) return
-    await directWrite('DELETE', 'blogs', undefined, `id=eq.${encodeURIComponent(id)}`, accessToken)
+    if (!id || !confirm('确定删除这篇文章？')) return
+    await directWrite('DELETE', 'blogs', undefined, `id=eq.${encodeURIComponent(id)}`)
     navigate('/blog')
   }
 
@@ -118,7 +117,7 @@ export default function EditBlog() {
           <div className="form-group"><label>正文 *</label><RichEditor value={content} onChange={setContent} /></div>
           <div className="form-group">
             <label>标签</label>
-            <TagSelector value={selectedTags} onChange={setSelectedTags} accessToken={accessToken} />
+            <TagSelector value={selectedTags} onChange={setSelectedTags}  />
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
             <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} />

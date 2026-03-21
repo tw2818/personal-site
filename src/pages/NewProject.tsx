@@ -35,7 +35,7 @@ export default function NewProject() {
     const { error } = await directWrite(
       'POST', 'projects',
       { user_id: user.id, name: name.trim(), description: description.trim(), cover_url: coverUrl.trim(), github_url: githubUrl.trim(), demo_url: demoUrl.trim(), featured },
-      '', accessToken
+      ''
     )
     setSaving(false)
     if (!error) navigate('/projects')

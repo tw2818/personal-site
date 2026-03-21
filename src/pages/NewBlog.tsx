@@ -8,7 +8,7 @@ import RichEditor from '../components/RichEditor'
 import TagSelector from '../components/TagSelector'
 
 export default function NewBlog() {
-  const { user, accessToken } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -35,12 +35,12 @@ export default function NewBlog() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user || !title.trim() || !accessToken) return
+    if (!user || !title.trim()) return
     setSaving(true)
     const { error } = await directWrite('POST', 'blogs', {
       user_id: user.id, title: title.trim(), content: content.trim(),
       cover_url: coverUrl.trim(), tags: selectedTags, published,
-    }, '', accessToken)
+    })
     setSaving(false)
     if (!error) navigate('/blog')
   }
@@ -62,7 +62,7 @@ export default function NewBlog() {
           <div className="form-group"><label>正文 *</label><RichEditor value={content} onChange={setContent} /></div>
           <div className="form-group">
             <label>标签</label>
-            <TagSelector value={selectedTags} onChange={setSelectedTags} accessToken={accessToken} />
+            <TagSelector value={selectedTags} onChange={setSelectedTags}  />
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
             <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} />

@@ -106,7 +106,7 @@ function UsersTab() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
-  const { accessToken } = useAuth()
+  const { } = useAuth()
   const fetchUsers = async () => {
     setLoading(true)
     const { data } = await (supabase as any).rpc('get_users_admin')
@@ -119,9 +119,9 @@ function UsersTab() {
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`确定删除用户 ${name}？这将同时删除其所有数据。`)) return
     setDeleting(id)
-    await directWrite('DELETE', 'profiles', undefined, `id=eq.${id}`, accessToken || '')
-    await directWrite('DELETE', 'blogs', undefined, `user_id=eq.${id}`, accessToken || '')
-    await directWrite('DELETE', 'projects', undefined, `user_id=eq.${id}`, accessToken || '')
+    await directWrite('DELETE', 'profiles', undefined, `id=eq.${id}`)
+    await directWrite('DELETE', 'blogs', undefined, `user_id=eq.${id}`)
+    await directWrite('DELETE', 'projects', undefined, `user_id=eq.${id}`)
     setDeleting(null)
     fetchUsers()
   }

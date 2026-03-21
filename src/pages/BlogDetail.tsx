@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import { useAuth } from '../contexts/AuthContext'
-import { supabase } from '../lib/supabase'
+
 
 const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
@@ -160,57 +160,59 @@ export default function BlogDetail() {
     setSubmitSuccess(false)
 
     try {
-      // Ensure supabase client has the current JWT before inserting
-      if (token) {
-        await (supabase.auth as any).setSession({
-          access_token: token,
-          refresh_token: '', // not needed for this operation
-        })
-      }
-
       const nickname = user?.user_metadata?.nickname || user?.user_metadata?.user_name || user?.email?.split('@')[0] || 'Anonymous'
       const avatar_url = user?.user_metadata?.avatar_url || ''
 
-      const { data: created, error } = await supabase
-        .from('comments')
-        .insert({
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          Prefer: 'return=representation',
+        },
+        body: JSON.stringify({
           blog_id: id,
           nickname,
           avatar_url,
           content: newComment.trim(),
-        })
-        .select()
-        .single()
+        }),
+      })
 
-      if (error) {
-        // If token expired, refresh and retry once
-        if ((error as any).status === 401) {
-          const newToken = await refreshToken()
-          if (newToken) {
-            await (supabase.auth as any).setSession({ access_token: newToken, refresh_token: '' })
-            const { data: retry, error: retryErr } = await supabase
-              .from('comments')
-              .insert({ blog_id: id, nickname, avatar_url, content: newComment.trim() })
-              .select()
-              .single()
-            if (retryErr) throw new Error(retryErr.message)
-            setComments(prev => [...prev, retry])
-            setNewComment('')
-            setSubmitSuccess(true)
-            setTimeout(() => setSubmitSuccess(false), 3000)
-            setSubmitting(false)
-            return
-          } else {
-            throw new Error('请先登录')
-          }
+      if (res.status === 401) {
+        const newToken = await refreshToken()
+        if (newToken) {
+          const retryRes = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${newToken}`,
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify({ blog_id: id, nickname, avatar_url, content: newComment.trim() }),
+          })
+          if (!retryRes.ok) throw new Error(`评论失败 (${retryRes.status})`)
+          const created = await retryRes.json()
+          setComments(prev => [...prev, ...(Array.isArray(created) ? created : [created])])
+          setNewComment('')
+          setSubmitSuccess(true)
+          setTimeout(() => setSubmitSuccess(false), 3000)
+          setSubmitting(false)
+          return
+        } else {
+          throw new Error('登录已过期，请重新登录')
         }
-        throw new Error(error.message)
+      } else if (!res.ok) {
+        const errBody = await res.text()
+        let errObj: { message?: string } = {}
+        try { errObj = JSON.parse(errBody) } catch { errObj = { message: errBody } }
+        throw new Error(errObj.message || `评论失败 (${res.status})`)
+      } else {
+        const created = await res.json()
+        setComments(prev => [...prev, ...(Array.isArray(created) ? created : [created])])
+        setNewComment('')
+        setSubmitSuccess(true)
+        setTimeout(() => setSubmitSuccess(false), 3000)
       }
-
-      setComments(prev => [...prev, created])
-      setNewComment('')
-      setSubmitSuccess(true)
-      setTimeout(() => setSubmitSuccess(false), 3000)
     } catch (err: any) {
       setSubmitError(err.message || 'Failed to post comment')
     } finally {
@@ -226,20 +228,22 @@ export default function BlogDetail() {
     if (!confirm('Delete this comment?')) return
 
     try {
-      if (token) await (supabase.auth as any).setSession({ access_token: token, refresh_token: '' })
-      const { error } = await supabase.from('comments').delete().eq('id', commentId)
-      if ((error as any)?.status === 401) {
+      let res = await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.status === 401) {
         const newToken = await refreshToken()
         if (newToken) {
-          await (supabase.auth as any).setSession({ access_token: newToken, refresh_token: '' })
-          const { error: retryErr } = await supabase.from('comments').delete().eq('id', commentId)
-          if (retryErr) throw new Error(retryErr.message)
+          res = await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${newToken}` },
+          })
         } else {
-          throw new Error('请先登录')
+          throw new Error('登录已过期，请重新登录')
         }
-      } else if (error) {
-        throw new Error(error.message)
       }
+      if (!res.ok) throw new Error('Failed to delete comment')
       setComments(prev => prev.filter(c => c.id !== commentId))
     } catch (err: any) {
       alert(err.message || 'Failed to delete comment')
@@ -253,34 +257,35 @@ export default function BlogDetail() {
     if (!token) return
 
     try {
-      if (token) await (supabase.auth as any).setSession({ access_token: token, refresh_token: '' })
-      const { data: updated, error } = await supabase
-        .from('comments')
-        .update({ pinned: !comment.pinned })
-        .eq('id', comment.id)
-        .select()
-        .single()
-
-      if ((error as any)?.status === 401) {
+      let res = await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${comment.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          Prefer: 'return=representation',
+        },
+        body: JSON.stringify({ pinned: !comment.pinned }),
+      })
+      if (res.status === 401) {
         const newToken = await refreshToken()
         if (newToken) {
-          await (supabase.auth as any).setSession({ access_token: newToken, refresh_token: '' })
-          const { data: retry, error: retryErr } = await supabase
-            .from('comments')
-            .update({ pinned: !comment.pinned })
-            .eq('id', comment.id)
-            .select()
-            .single()
-          if (retryErr) throw new Error(retryErr.message)
-          setComments(prev => prev.map(c => c.id === comment.id ? { ...c, pinned: retry.pinned } : c))
+          res = await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${comment.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${newToken}`,
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify({ pinned: !comment.pinned }),
+          })
         } else {
-          throw new Error('请先登录')
+          throw new Error('登录已过期，请重新登录')
         }
-      } else if (error) {
-        throw new Error(error.message)
-      } else {
-        setComments(prev => prev.map(c => c.id === comment.id ? { ...c, pinned: updated.pinned } : c))
       }
+      if (!res.ok) throw new Error('Failed to update comment')
+      const updated = await res.json()
+      const newPinned = Array.isArray(updated) ? updated[0]?.pinned : false
+      setComments(prev => prev.map(c => c.id === comment.id ? { ...c, pinned: newPinned } : c))
     } catch (err: any) {
       alert(err.message || 'Failed to update comment')
     }

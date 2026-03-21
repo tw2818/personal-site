@@ -1,10 +1,19 @@
 import { useAuth } from '../contexts/AuthContext'
 
 const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
 
-// Use the user's access token (not anon key) for writes - bypasses supabase JS session deadlock
-// while still being secure (RLS uses auth.uid() from the real JWT)
+
+// Get access token directly from localStorage (same key Supabase JS client uses)
+export function getLocalToken(): string | null {
+  try {
+    const raw = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed.access_token || null
+  } catch { return null }
+}
+
+// Use the user's access token for writes via hook (accessToken from React state)
 export function useApiWrite() {
   const { accessToken } = useAuth()
 
@@ -12,9 +21,10 @@ export function useApiWrite() {
     method: 'POST' | 'PATCH' | 'DELETE',
     table: string,
     body?: Record<string, any>,
-    params?: string // e.g. "id=eq.xxx"
+    params?: string
   ) {
-    if (!accessToken) return { error: 'not authenticated' }
+    const token = getLocalToken() || accessToken
+    if (!token) return { error: 'not authenticated' }
 
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 8000)
@@ -27,8 +37,8 @@ export function useApiWrite() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'apikey': ANON_KEY,
-          'Authorization': `Bearer ${accessToken}`,
+          // No apikey when we have a real token — apikey=anon would override JWT auth context
+          'Authorization': `Bearer ${token}`,
           'Prefer': method === 'POST' ? 'return=representation' : '',
         },
         body: body ? JSON.stringify(body) : undefined,
@@ -46,19 +56,21 @@ export function useApiWrite() {
 
   return {
     insert: (table: string, body: Record<string, any>) => apiWrite('POST', table, body),
-    update: (table: string, body: Record<string, any>, params: string) => apiWrite('PATCH', table, body, params),
-    delete: (table: string, params: string) => apiWrite('DELETE', table, undefined, params),
+    update: (table: string, body: Record<string, any>, params?: string) => apiWrite('PATCH', table, body, params),
+    delete: (table: string, params?: string) => apiWrite('DELETE', table, undefined, params),
   }
 }
 
-// Direct REST write without hook (for use in non-React contexts)
+// Direct REST write (token fetched from localStorage internally)
 export async function directWrite(
   method: 'POST' | 'PATCH' | 'DELETE',
   table: string,
   body: Record<string, any> | undefined,
-  params: string,
-  token: string
+  params?: string
 ) {
+  const token = getLocalToken()
+  if (!token) return { error: 'not authenticated' }
+
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 8000)
 
@@ -68,7 +80,7 @@ export async function directWrite(
       method,
       headers: {
         'Content-Type': 'application/json',
-        'apikey': ANON_KEY,
+        // No apikey — Authorization Bearer token establishes proper auth context for RLS
         'Authorization': `Bearer ${token}`,
         'Prefer': method === 'POST' ? 'return=representation' : '',
       },

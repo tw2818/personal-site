@@ -61,14 +61,14 @@ export default function EditProject() {
     e.preventDefault()
     if (!id || !name.trim() || !accessToken) return
     setSaving(true)
-    await directWrite('PATCH', 'projects', { name: name.trim(), description: description.trim(), cover_url: coverUrl.trim(), github_url: githubUrl.trim(), demo_url: demoUrl.trim(), featured }, `id=eq.${encodeURIComponent(id)}`, accessToken)
+    await directWrite('PATCH', 'projects', { name: name.trim(), description: description.trim(), cover_url: coverUrl.trim(), github_url: githubUrl.trim(), demo_url: demoUrl.trim(), featured }, `id=eq.${encodeURIComponent(id)}`)
     setSaving(false)
     navigate('/projects')
   }
 
   const handleDelete = async () => {
     if (!id || !accessToken || !confirm('确定删除这个项目？')) return
-    await directWrite('DELETE', 'projects', undefined, `id=eq.${encodeURIComponent(id)}`, accessToken)
+    await directWrite('DELETE', 'projects', undefined, `id=eq.${encodeURIComponent(id)}`)
     navigate('/projects')
   }
 
