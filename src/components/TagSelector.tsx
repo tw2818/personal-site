@@ -106,14 +106,12 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
         return
       }
 
-      // Create new tag
-      if (!accessToken) {
-        setInputError('需要登录才能创建标签')
-        return
-      }
-
-      const rawToken = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
-      const token = rawToken ? JSON.parse(rawToken)?.access_token : null
+      // Get token: accessToken prop (if provided) or fall back to localStorage
+      const rawToken = accessToken
+        ?? localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
+      const token = rawToken
+        ? (rawToken.startsWith('{') ? JSON.parse(rawToken)?.access_token : rawToken)
+        : null
       if (!token) { setInputError('请先登录'); setCreating(false); return }
       setCreating(true)
       const slug = slugify(inputTrimmed)

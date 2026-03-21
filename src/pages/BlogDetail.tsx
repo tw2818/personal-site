@@ -275,6 +275,7 @@ export default function BlogDetail() {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
+              apikey: ANON_KEY,
               Authorization: `Bearer ${newToken}`,
               Prefer: 'return=representation',
             },
