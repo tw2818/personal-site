@@ -54,11 +54,19 @@ export default function Profile() {
     let cancelled = false
 
     const load = async () => {
+
+    // Realtime subscription - refresh counts on any blogs/projects change
+    supabase.channel('blogs-count').on('postgres_changes', { event: '*', schema: 'public', table: 'blogs' }, () => load()).subscribe()
+    supabase.channel('projects-count').on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => load()).subscribe()
       setLoading(true)
       try {
         const profileData = await apiFetch(`profiles?github=eq.${encodeURIComponent(ADMIN_USER)}&select=*`)
         const adminProfile = Array.isArray(profileData) ? profileData[0] : null
         const adminId = adminProfile?.id
+    return () => {
+      supabase.removeChannel(supabase.channel('blogs-count'))
+      supabase.removeChannel(supabase.channel('projects-count'))
+    }
         
         const [bc, pc] = adminId ? await Promise.all([
           apiFetch(`blogs?select=id&user_id=eq.${encodeURIComponent(adminId)}&published=eq.true&limit=1`),
