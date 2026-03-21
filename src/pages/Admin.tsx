@@ -12,6 +12,7 @@ interface UserProfile {
   github: string
   bilibili: string
   twitter: string
+  xiaohongshu: string
   avatar_url: string
   bio: string
   created_at: string
@@ -25,6 +26,7 @@ function SettingsTab() {
   const [github, setGithub] = useState('')
   const [bilibili, setBilibili] = useState('')
   const [twitter, setTwitter] = useState('')
+  const [xiaohongshu, setXiaohongshu] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -39,6 +41,7 @@ function SettingsTab() {
         setGithub(data.github || '')
         setBilibili(data.bilibili || '')
         setTwitter(data.twitter || '')
+        setXiaohongshu(data.xiaohongshu || '')
         setAvatarUrl(data.avatar_url || '')
       }
     })
@@ -50,7 +53,7 @@ function SettingsTab() {
     setSaving(true)
     setSaved(false)
     await supabase.from('profiles').upsert({
-      id: user.id, email: user.email, nickname, bio, github, bilibili, twitter, avatar_url: avatarUrl,
+      id: user.id, email: user.email, nickname, bio, github, bilibili, twitter, xiaohongshu, avatar_url: avatarUrl,
       updated_at: new Date().toISOString(),
     })
     setSaving(false)
@@ -74,6 +77,7 @@ function SettingsTab() {
         { label: 'GitHub 用户名', value: github, set: setGithub, placeholder: 'username' },
         { label: 'B站 ID', value: bilibili, set: setBilibili, placeholder: '' },
         { label: 'Twitter/X 用户名', value: twitter, set: setTwitter, placeholder: '' },
+        { label: '小红书 ID', value: xiaohongshu, set: setXiaohongshu, placeholder: '' },
       ].map(f => (
         <div className="form-group" key={f.label}>
           <label>{f.label}</label>
