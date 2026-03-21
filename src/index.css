@@ -690,3 +690,5 @@ body::before {
 /* Make page and navbar sit above the dot layer */
 .navbar { position: fixed; z-index: 100; width: 100%; top: 0; left: 0; }
 .page { z-index: 1; }
+
+/* trigger redeploy */
