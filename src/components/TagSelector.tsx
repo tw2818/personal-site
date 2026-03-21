@@ -57,6 +57,12 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
   // Cleanup orphan tags (usage_count=0) from DB - called after creating a new tag
   const cleanupUnusedTags = async () => {
     try {
+      // Use the same token source as handleCreate (localStorage), not the accessToken prop
+      const rawToken = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
+      const token = rawToken
+        ? (rawToken.startsWith('{') ? JSON.parse(rawToken)?.access_token : rawToken)
+        : null
+      if (!token) return
       const res = await fetch(SUPABASE_URL + '/rest/v1/blogs?select=tags&published=eq.true', {
         headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY },
       })
@@ -70,11 +76,11 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
       const unused = allTags.filter((t: { id: string; slug: string }) =>
         !usage[t.slug] && !value.includes(t.slug)
       )
-      if (unused.length > 0 && accessToken) {
+      if (unused.length > 0 && token) {
         const ids = unused.map((t: { id: string }) => t.id).join(',')
         await fetch(SUPABASE_URL + '/rest/v1/tags?id=in.(' + ids + ')', {
           method: 'DELETE',
-          headers: { 'Authorization': 'Bearer ' + accessToken },
+          headers: { 'Authorization': 'Bearer ' + token, 'apikey': ANON_KEY },
         })
       }
     } catch {}
