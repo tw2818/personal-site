@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
@@ -98,7 +98,6 @@ export default function BlogDetail() {
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [readingProgress, setReadingProgress] = useState(0)
-  const [showBackToTop, setShowBackToTop] = useState(false)
   const [headings, setHeadings] = useState<Heading[]>([])
   const [activeHeading, setActiveHeading] = useState('')
 
@@ -106,14 +105,13 @@ export default function BlogDetail() {
   const isAuthor = blog?.user_id === user?.id
   const canModerate = isAdmin || isAuthor
 
-  // Reading progress & back to top visibility & scroll spy
+  // Reading progress & scroll spy
   useEffect(() => {
     const updateProgress = () => {
       const el = document.documentElement
       const scrollTop = el.scrollTop || document.body.scrollTop
       const height = el.scrollHeight - el.clientHeight
       setReadingProgress(height > 0 ? Math.round((scrollTop / height) * 100) : 0)
-      setShowBackToTop(scrollTop > 400)
       // Scroll spy: find the heading currently in view
       const headingEls = document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4')
       let current = ''
@@ -406,82 +404,115 @@ export default function BlogDetail() {
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(var(--bg-rgb), 0.1)', zIndex: 199 }} />
 
       {/* Left TOC sidebar: fixed overlay, does not affect article width */}
-      {headings.length > 0 && (
-        <div style={{
-          position: 'fixed',
-          left: 'max(1.5rem, calc((100vw - 1100px) / 2 - 220px))',
-          top: 80,
-          width: 180,
-          maxHeight: 'calc(100vh - 100px)',
-          overflowY: 'auto',
-          zIndex: 50,
-        }}>
-          <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>目录</div>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-            {headings.map(h => (
-              <a
-                key={h.id}
-                href={`#${h.id}`}
-                onClick={e => {
-                  e.preventDefault()
-                  const el = document.getElementById(h.id)
-                  if (el) {
-                    const top = el.getBoundingClientRect().top + window.scrollY - 90
-                    window.scrollTo({ top, behavior: 'smooth' })
-                  }
-                }}
-                style={{
-                  display: 'block',
-                  fontSize: h.level === 1 ? '0.78rem' : h.level === 2 ? '0.72rem' : '0.68rem',
-                  fontWeight: h.level === 1 ? 600 : 400,
-                  color: activeHeading === h.id ? 'var(--accent)' : 'var(--text-secondary)',
-                  paddingLeft: (h.level - 1) * 0.75 + 'rem',
-                  paddingTop: '0.15rem',
-                  paddingBottom: '0.15rem',
-                  borderLeft: '2px solid',
-                  borderLeftColor: activeHeading === h.id ? 'var(--accent)' : 'transparent',
-                  transition: 'all 0.2s',
-                  textDecoration: 'none',
-                  lineHeight: 1.4,
-                }}
-              >
-                {h.text}
-              </a>
-            ))}
-          </nav>
-        </div>
-      )}
+      <div style={{
+        position: 'fixed',
+        left: 'max(1.5rem, calc((100vw - 1100px) / 2 - 220px))',
+        top: 80,
+        width: 180,
+        maxHeight: 'calc(100vh - 100px)',
+        overflowY: 'auto',
+        zIndex: 50,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+      }}>
+        {/* Back button */}
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            background: 'rgba(var(--bg-rgb), 0.12)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid var(--border)',
+            borderRadius: 10,
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: '0.82rem',
+            padding: '0.45rem 0.9rem',
+            transition: 'all 0.2s',
+            width: '100%',
+            justifyContent: 'flex-start',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.22)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.12)' }}
+        >
+          ← 返回
+        </button>
+
+        {headings.length > 0 && (
+          <>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>目录</div>
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {headings.map(h => (
+                <a
+                  key={h.id}
+                  href={`#${h.id}`}
+                  onClick={e => {
+                    e.preventDefault()
+                    const el = document.getElementById(h.id)
+                    if (el) {
+                      const top = el.getBoundingClientRect().top + window.scrollY - 90
+                      window.scrollTo({ top, behavior: 'smooth' })
+                    }
+                  }}
+                  style={{
+                    display: 'block',
+                    fontSize: h.level === 1 ? '0.88rem' : h.level === 2 ? '0.82rem' : '0.78rem',
+                    fontWeight: h.level === 1 ? 600 : 400,
+                    color: activeHeading === h.id ? 'var(--accent)' : 'var(--text-secondary)',
+                    paddingLeft: (h.level - 1) * 0.75 + 'rem',
+                    paddingTop: '0.2rem',
+                    paddingBottom: '0.2rem',
+                    borderLeft: '2px solid',
+                    borderLeftColor: activeHeading === h.id ? 'var(--accent)' : 'transparent',
+                    transition: 'all 0.2s',
+                    textDecoration: 'none',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {h.text}
+                </a>
+              ))}
+            </nav>
+
+            {/* Back to top */}
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                background: 'rgba(var(--bg-rgb), 0.1)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                padding: '0.35rem 0.7rem',
+                transition: 'all 0.2s',
+                width: '100%',
+                justifyContent: 'flex-start',
+                marginTop: '0.5rem',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.2)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.1)' }}
+            >
+              ↑ 回到顶部
+            </button>
+          </>
+        )}
+      </div>
 
       {/* Main content: centered article */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 2rem' }}>
 
         {/* Article content */}
         <div>
-          {/* Back button */}
-          <button
-            onClick={() => navigate(-1)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              background: 'rgba(var(--bg-rgb), 0.12)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: '1px solid var(--border)',
-              borderRadius: 10,
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              padding: '0.4rem 0.9rem',
-              marginBottom: '1.5rem',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.22)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.12)' }}
-          >
-            ← 返回
-          </button>
-
           {/* Cover image */}
           {blog.cover_url && (
             <div
@@ -714,45 +745,6 @@ export default function BlogDetail() {
             )}
         </div>
       </div>
-
-      {/* Back to top */}
-      <AnimatePresence>
-        {showBackToTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            title="回到顶部"
-            style={{
-              position: 'fixed',
-              bottom: '2rem',
-              right: '2rem',
-              width: 44,
-              height: 44,
-              borderRadius: '50%',
-              background: 'rgba(var(--bg-rgb), 0.15)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: '1px solid var(--border)',
-              color: 'var(--text)',
-              fontSize: '1.2rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-              transition: 'all 0.3s',
-              zIndex: 100,
-            }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            ↑
-          </motion.button>
-        )}
-      </AnimatePresence>
     </div>
   )
 }
