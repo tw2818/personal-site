@@ -134,7 +134,6 @@ export default function BlogDetail() {
         },
         body: JSON.stringify({
           blog_id: id,
-          user_id: decodeJWT(accessToken) || user?.id || '',
           nickname: user?.user_metadata?.nickname || user?.user_metadata?.user_name || user?.email?.split('@')[0] || 'Anonymous',
           avatar_url: user?.user_metadata?.avatar_url || '',
           content: newComment.trim(),
