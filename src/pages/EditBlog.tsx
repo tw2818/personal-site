@@ -74,6 +74,32 @@ export default function EditBlog() {
     })
   }, [id])
 
+  // Cleanup tags with zero usage after saving/deleting a blog
+  const cleanupUnusedTags = async () => {
+    try {
+      // Get all published blog tags
+      const res = await fetch(SUPABASE_URL + '/rest/v1/blogs?select=tags&published=eq.true', {
+        headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY },
+      })
+      const blogs = await res.json()
+      const usage: Record<string, number> = {}
+      blogs.forEach((b: any) => b.tags?.forEach((t: string) => { usage[t] = (usage[t] || 0) + 1 }))
+      // Get all tags from DB
+      const allTagsRes = await fetch(SUPABASE_URL + '/rest/v1/tags?select=id,slug', {
+        headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY },
+      })
+      const allTags: { id: string; slug: string }[] = await allTagsRes.json()
+      const unused = allTags.filter((t: { id: string; slug: string }) => !usage[t.slug])
+      if (unused.length > 0 && accessToken) {
+        const ids = unused.map((t: { id: string }) => t.id).join(',')
+        await fetch(SUPABASE_URL + '/rest/v1/tags?id=in.(' + ids + ')', {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + accessToken },
+        })
+      }
+    } catch {}
+  }
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!id || !title.trim() || !accessToken) return
@@ -87,6 +113,7 @@ export default function EditBlog() {
       },
       `id=eq.${encodeURIComponent(id)}`,
     )
+    await cleanupUnusedTags()
     setSaving(false)
     navigate('/blog')
   }
@@ -94,6 +121,7 @@ export default function EditBlog() {
   const handleDelete = async () => {
     if (!id || !confirm('确定删除这篇文章？')) return
     await directWrite('DELETE', 'blogs', undefined, `id=eq.${encodeURIComponent(id)}`)
+    await cleanupUnusedTags()
     navigate('/blog')
   }
 
