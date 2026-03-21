@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -25,6 +26,7 @@ interface Tag {
 export default function Blog() {
   const { user } = useAuth()
     const isAdmin = user?.user_metadata?.user_name === ADMIN_USER
+  const navigate = useNavigate()
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'published' | 'drafts'>('published')
@@ -133,7 +135,7 @@ export default function Blog() {
           ))}
           {isAdmin && (
             <button
-              onClick={() => window.location.href = '/blog/new'}
+              onClick={() => navigate('/blog/new')}
               style={{
                 marginLeft: 'auto', background: 'var(--accent)', color: '#fff',
                 border: 'none', borderRadius: 980, padding: '0.4rem 1.2rem',
@@ -256,7 +258,7 @@ export default function Blog() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
               >
-                <div className="item" style={{ cursor: 'pointer' }} onClick={() => window.location.href = `/blog/${blog.id}`}>
+                <div className="item" style={{ cursor: 'pointer' }} onClick={() => navigate(`/blog/${blog.id}`)}>
                   <span className="item-date">{new Date(blog.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit' })}</span>
                   <div style={{ flex: 1 }}>
                     <h3>{blog.title}</h3>
@@ -283,7 +285,7 @@ export default function Blog() {
                   )}
                   {isAdmin && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); window.location.href = `/blog/${blog.id}/edit` }}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/blog/${blog.id}/edit`) }}
                       style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '0.25rem 0.6rem', fontSize: '0.75rem', cursor: 'pointer', marginRight: '0.5rem' }}
                     >✏️</button>
                   )}
