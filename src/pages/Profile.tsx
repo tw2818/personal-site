@@ -96,8 +96,9 @@ export default function Profile() {
     }
   }, [user])
 
-  // Mouse tilt effect via direct DOM manipulation - runs once after mount
+  // Mouse tilt effect - depends on loading so it sets up after card is actually rendered
   useEffect(() => {
+    if (loading) return
     const el = cardRef.current
     if (!el) return
 
@@ -125,7 +126,7 @@ export default function Profile() {
       el.removeEventListener('mousemove', onMove as EventListener)
       el.removeEventListener('mouseleave', onLeave)
     }
-  }, [])
+  }, [loading])
 
 
   if (loading) {
