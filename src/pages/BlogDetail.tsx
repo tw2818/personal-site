@@ -408,7 +408,7 @@ export default function BlogDetail() {
       {/* Left TOC sidebar: fixed overlay, does not affect article width */}
       <div style={{
         position: 'fixed',
-        left: 'max(2rem, calc((100vw - 1100px) / 2 - 200px))',
+        left: '2rem',
         top: 80,
         width: 180,
         maxHeight: 'calc(100vh - 100px)',
