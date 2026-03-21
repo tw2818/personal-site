@@ -424,22 +424,19 @@ export default function BlogDetail() {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.4rem',
-            background: 'rgba(var(--bg-rgb), 0.12)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid var(--border)',
-            borderRadius: 10,
+            gap: '0.3rem',
+            background: 'transparent',
+            border: 'none',
             color: 'var(--text-secondary)',
             cursor: 'pointer',
-            fontSize: '0.82rem',
-            padding: '0.45rem 0.9rem',
+            fontSize: '0.8rem',
+            padding: '0.3rem 0',
             transition: 'all 0.2s',
             width: '100%',
             justifyContent: 'flex-start',
           }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.22)' }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.12)' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)' }}
         >
           ← 返回
         </button>
