@@ -179,7 +179,11 @@ export default function Profile() {
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem' }}>🐦 {profile.twitter}</span>
             )}
             {profile?.xiaohongshu && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem' }}>📕 {profile.xiaohongshu}</span>
+              <a href={profile.xiaohongshu} target="_blank" rel="noreferrer" className="social-link"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem', textDecoration: 'none', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)'; e.currentTarget.style.transform = '' }}
+              >📕 小红书</a>
             )}
           </motion.div>
           {user && (

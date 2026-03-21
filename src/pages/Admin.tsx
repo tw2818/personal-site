@@ -77,7 +77,7 @@ function SettingsTab() {
         { label: 'GitHub 用户名', value: github, set: setGithub, placeholder: 'username' },
         { label: 'B站 ID', value: bilibili, set: setBilibili, placeholder: '' },
         { label: 'Twitter/X 用户名', value: twitter, set: setTwitter, placeholder: '' },
-        { label: '小红书 ID', value: xiaohongshu, set: setXiaohongshu, placeholder: '' },
+        { label: '小红书主页', value: xiaohongshu, set: setXiaohongshu, placeholder: 'https://www.xiaohongshu.com/...' },
       ].map(f => (
         <div className="form-group" key={f.label}>
           <label>{f.label}</label>
