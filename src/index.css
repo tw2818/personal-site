@@ -100,7 +100,7 @@ a { color: inherit; text-decoration: none; }
 .theme-toggle:hover { transform: scale(1.1); }
 
 /* ── Layout ── */
-.page { padding-top: 80px; min-height: 100vh; background: rgba(var(--bg-rgb, 255,255,255), 0.88); backdrop-filter: blur(12px); }
+.page { padding-top: 80px; min-height: 100vh; background: var(--bg); }
 
 /* ── Blog Detail Content Card ── */
 .blog-detail-card {
@@ -672,40 +672,25 @@ textarea.form-input { resize: vertical; min-height: 120px; }
   color: var(--text) !important;
 }
 
-/* ── Animated gradient background ── */
+/* ── Dot grid background ── */
 body::before {
   content: '';
   position: fixed;
-  inset: -20%;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
-  /* Light mode: subtle warm-cool radial blobs */
   background:
-    radial-gradient(ellipse 70% 60% at 20% 0%, rgba(99,114,255,0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(255,107,107,0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 80% 0%, rgba(0,178,240,0.10) 0%, transparent 50%),
-    var(--bg);
-  animation: gradientShift 18s ease-in-out infinite alternate;
+    radial-gradient(circle, var(--dot-color, #d1d5db) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: 0 0;
 }
 
 [data-theme="dark"] body::before {
-  /* Dark mode: rich deep purple/blue atmosphere — much more visible */
-  background:
-    radial-gradient(ellipse 100% 80% at 50% -10%, rgba(50,30,120,0.85) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 60% at 90% 20%, rgba(80,30,150,0.50) 0%, transparent 50%),
-    radial-gradient(ellipse 70% 50% at 10% 90%, rgba(20,60,140,0.55) 0%, transparent 50%),
-    #0a0a12;
-  animation: gradientShiftDark 20s ease-in-out infinite alternate;
-}
-
-@keyframes gradientShift {
-  0%   { background-position: 0% 0%, 100% 100%, 80% 0%, 0% 0%; }
-  50%  { background-position: 40% 30%, 60% 70%, 20% 20%, 0% 0%; }
-  100% { background-position: 80% 60%, 20% 40%, 60% 80%, 0% 0%; }
-}
-
-@keyframes gradientShiftDark {
-  0%   { background-position: 0% 0%, 100% 100%, 0% 100%, 0% 0%; }
-  50%  { background-position: 60% 20%, 40% 80%, 80% 20%, 0% 0%; }
-  100% { background-position: 30% 70%, 70% 30%, 20% 80%, 0% 0%; }
+  --dot-color: #2d2d35;
+  /* Subtle glow in top-center for depth */
+  background-image:
+    radial-gradient(circle, #2d2d35 1px, transparent 1px),
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(80,60,180,0.07) 0%, transparent 60%);
+  background-size: 28px 28px, 100% 100%;
+  background-position: 0 0, 0 0;
 }
