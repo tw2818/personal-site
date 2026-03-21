@@ -349,7 +349,7 @@ export default function BlogDetail() {
       {/* Reading progress bar */}
       <div style={{ position: 'fixed', top: 0, left: 0, height: 3, width: readingProgress + '%', background: 'var(--accent)', zIndex: 200, transition: 'width 0.1s', borderRadius: '0 2px 2px 0' }} />
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(var(--bg-rgb), 0.1)', zIndex: 199 }} />
-      <div style={{ maxWidth: 760, margin: "0 auto", padding: "2rem 2rem 4rem" }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "2rem 2rem 4rem" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           {/* Back button */}
           <button
@@ -560,6 +560,37 @@ export default function BlogDetail() {
             )}
           </div>
         </motion.div>
+
+        {/* Back to top */}
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          title="回到顶部"
+          style={{
+            position: 'fixed',
+            bottom: '2rem',
+            right: '2rem',
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            background: 'rgba(var(--bg-rgb), 0.15)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid var(--border)',
+            color: 'var(--text)',
+            fontSize: '1.2rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            transition: 'all 0.3s',
+            zIndex: 100,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)' }}
+          onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)' }}
+        >
+          ↑
+        </button>
       </div>
     </div>
   )
