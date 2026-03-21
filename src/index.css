@@ -56,16 +56,18 @@ a { color: inherit; text-decoration: none; }
   padding: 0 2rem;
   height: 52px;
   background: rgba(var(--bg-rgb), 0.12);
-  backdrop-filter: blur(24px) saturate(180%);
+  will-change: transform;
   -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
   border-bottom: 1px solid var(--border);
   transition: all var(--transition);
 }
 
 [data-theme="dark"] .navbar {
   background: rgba(var(--bg-rgb), 0.12);
-  backdrop-filter: blur(24px) saturate(180%);
+  will-change: transform;
   -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
