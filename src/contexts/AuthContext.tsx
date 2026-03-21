@@ -58,12 +58,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Read token from localStorage immediately (sync, no hang)
         const localToken = readLocalSession()
         if (localToken) {
-          // Decode JWT to get user info without supabase call
-          const payload = JSON.parse(atob(localToken.split('.')[1]))
-          const fakeUser = { id: payload.sub, email: payload.email, user_metadata: {} } as User
-          setAccessToken(localToken)
-          setUser(fakeUser)
-          setLoading(false)
+          // Decode JWT using URL-safe base64 (Supabase uses -_ instead of +/)
+          try {
+            const base64 = localToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+            const padded = base64 + '=='.slice(0, (4 - base64.length % 4) % 4)
+            const payload = JSON.parse(atob(padded))
+            const fakeUser = { id: payload.sub, email: payload.email, user_metadata: payload.user_metadata || {} } as User
+            setAccessToken(localToken)
+            setUser(fakeUser)
+            setLoading(false)
+          } catch {
+            // Token corrupted — try supabase to refresh via refresh token
+            const { data } = await supabase.auth.getSession()
+            if (!cancelled && data?.session) {
+              setSession(data.session)
+              setUser(data.session.user)
+              setAccessToken(data.session.access_token)
+            } else if (!cancelled) {
+              setSession(null)
+              setUser(null)
+              setAccessToken(null)
+              setLoading(false)
+            }
+          }
         } else {
           if (!cancelled) {
             setSession(null)
