@@ -78,6 +78,17 @@ export default function EditProject() {
   return (
     <div className="page">
       <div className="section" style={{ maxWidth: 640 }}>
+        <button
+          onClick={() => navigate('/projects')}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            background: 'none', border: 'none', color: 'var(--text-secondary)',
+            cursor: 'pointer', fontSize: '0.9rem', padding: '0.3rem 0',
+            marginBottom: '1.2rem', transition: 'color 0.2s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+        >← 返回项目列表</button>
         <motion.h1 className="section-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>✏️ 编辑项目</motion.h1>
         <motion.form onSubmit={handleSave} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginTop: '1.5rem' }}>
           <div className="form-group"><label>项目名称 *</label><input className="form-input" value={name} onChange={e => setName(e.target.value)} required /></div>
