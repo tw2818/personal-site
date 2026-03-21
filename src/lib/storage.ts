@@ -29,12 +29,18 @@ export async function deleteImageIfUnused(imageUrl: string, currentBlogId?: stri
     if (!filename) return
 
     // Check which blogs currently use this image
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/blogs?select=id,cover_url&cover_url=ilike.%${encodeURIComponent(filename)}%`, {
+    // Check blogs
+    const blogsRes = await fetch(`${SUPABASE_URL}/rest/v1/blogs?select=id,cover_url&cover_url=ilike.%${encodeURIComponent(filename)}%`, {
       headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` },
     })
-    const blogs: { id: string; cover_url: string }[] = await res.json()
-    // Filter out the current blog (if updating)
-    const stillUsed = blogs.filter(b => !currentBlogId || b.id !== currentBlogId)
+    const blogs: { id: string; cover_url: string }[] = await blogsRes.json()
+    // Check projects
+    const projectsRes = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=id,cover_url&cover_url=ilike.%${encodeURIComponent(filename)}%`, {
+      headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` },
+    })
+    const projects: { id: string; cover_url: string }[] = await projectsRes.json()
+    // Combine and filter out the current item (if updating)
+    const allUsed = [...blogs, ...projects].filter(item => !currentBlogId || item.id !== currentBlogId)
     if (stillUsed.length > 0) return // Still referenced
 
     // Not used anywhere - delete from storage
@@ -55,7 +61,15 @@ export async function cleanupOrphanImages(): Promise<void> {
       headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` },
     })
     const blogs: { id: string; cover_url: string }[] = await blogsRes.json()
-    const inUse = new Set(blogs.map(b => b.cover_url?.split('/blog-images/')[1]).filter(Boolean))
+    // Get all project cover images currently in use
+    const projectsRes = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=id,cover_url`, {
+      headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` },
+    })
+    const projects: { id: string; cover_url: string }[] = await projectsRes.json()
+    const inUse = new Set([
+      ...blogs.map(b => b.cover_url?.split('/blog-images/')[1]),
+      ...projects.map(p => p.cover_url?.split('/blog-images/')[1]),
+    ].filter(Boolean))
 
     // List all files in storage
     const storageRes = await fetch(`${SUPABASE_URL}/storage/v1/object/blog-images/`, {

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { directWrite } from '../lib/apiWrite'
-import { uploadImage } from '../lib/storage'
+import { uploadImage, deleteImageIfUnused, cleanupOrphanImages } from '../lib/storage'
 import { SUPABASE_URL, ANON_KEY } from '../lib/config'
 
 export default function EditProject() {
@@ -70,6 +70,7 @@ export default function EditProject() {
   const handleDelete = async () => {
     if (!id || !accessToken || !confirm('确定删除这个项目？')) return
     await directWrite('DELETE', 'projects', undefined, `id=eq.${encodeURIComponent(id)}`)
+    await deleteImageIfUnused(coverUrl)
     navigate('/projects')
   }
 
