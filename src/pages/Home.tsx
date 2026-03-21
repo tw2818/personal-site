@@ -102,7 +102,7 @@ export default function Home() {
           initial="hidden"
           animate="visible"
         >
-          前端开发者 / AI 探索者 / 终身学习者。
+          医学牲 / 牛马 / AI 探索者。
           <br />在这里分享技术、项目与想法。
         </motion.p>
         <motion.div

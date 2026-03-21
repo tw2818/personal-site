@@ -183,7 +183,7 @@ export default function Profile() {
         {[
           { label: '博客', value: blogCount, icon: '📝' },
           { label: '项目', value: projectCount, icon: '💼' },
-          { label: '身份', value: '开发者', icon: '🎓' },
+          { label: '身份', value: '牛马', icon: '🎓' },
         ].map((item, i) => (
           <motion.div
             key={item.label}
