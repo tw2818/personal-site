@@ -421,27 +421,25 @@ export default function BlogDetail() {
         {/* Back button */}
         <motion.button
           onClick={() => navigate(-1)}
-          whileHover={{ x: -4, scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          title="返回"
           style={{
-            display: 'inline-flex',
+            display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
-            background: 'rgba(var(--bg-rgb), 0.12)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid var(--border)',
-            borderRadius: 10,
-            color: 'var(--text-secondary)',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            background: 'var(--accent)',
+            border: 'none',
+            color: '#fff',
             cursor: 'pointer',
-            fontSize: '0.85rem',
-            padding: '0.5rem 1rem',
-            transition: 'all 0.2s',
-            width: '100%',
-            justifyContent: 'flex-start',
+            fontSize: '1rem',
+            boxShadow: '0 2px 12px rgba(0,113,227,0.3)',
           }}
         >
-          <span style={{ transition: 'transform 0.2s' }}>←</span> 返回
+          ←
         </motion.button>
 
         {headings.length > 0 && (
