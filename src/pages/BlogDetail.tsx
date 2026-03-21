@@ -118,7 +118,6 @@ export default function BlogDetail() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          apikey: ANON_KEY,
           Authorization: `Bearer ${accessToken}`,
           Prefer: 'return=representation',
         },
@@ -158,7 +157,6 @@ export default function BlogDetail() {
         {
           method: 'DELETE',
           headers: {
-            apikey: ANON_KEY,
             Authorization: `Bearer ${accessToken}`,
           },
         }
@@ -181,7 +179,6 @@ export default function BlogDetail() {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            apikey: ANON_KEY,
             Authorization: `Bearer ${accessToken}`,
             Prefer: 'return=representation',
           },
