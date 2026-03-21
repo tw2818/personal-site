@@ -178,6 +178,9 @@ export default function Profile() {
             {profile?.twitter && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem' }}>🐦 {profile.twitter}</span>
             )}
+            {profile?.xiaohongshu && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem' }}>📕 {profile.xiaohongshu}</span>
+            )}
           </motion.div>
           {user && (
             <motion.div
