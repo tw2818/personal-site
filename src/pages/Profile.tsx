@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion, useMotionValue, useSpring, useTransform, animate } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { SUPABASE_URL, ANON_KEY, ADMIN_USER } from '../lib/config'
+import { supabase } from '../lib/supabase'
 
 
 function AnimatedCounter({ target, duration = 1.5 }: { target: number; duration?: number }) {

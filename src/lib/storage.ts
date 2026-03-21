@@ -40,7 +40,7 @@ export async function deleteImageIfUnused(imageUrl: string, currentBlogId?: stri
     })
     const projects: { id: string; cover_url: string }[] = await projectsRes.json()
     // Combine and filter out the current item (if updating)
-    const allUsed = [...blogs, ...projects].filter(item => !currentBlogId || item.id !== currentBlogId)
+    const stillUsed = [...blogs, ...projects].filter(item => !currentBlogId || item.id !== currentBlogId)
     if (stillUsed.length > 0) return // Still referenced
 
     // Not used anywhere - delete from storage

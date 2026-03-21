@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { directWrite } from '../lib/apiWrite'
-import { uploadImage, deleteImageIfUnused, cleanupOrphanImages } from '../lib/storage'
+import { uploadImage, deleteImageIfUnused } from '../lib/storage'
 import { SUPABASE_URL, ANON_KEY } from '../lib/config'
 
 export default function EditProject() {
