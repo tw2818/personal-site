@@ -425,12 +425,11 @@ export default function BlogDetail() {
           whileTap={{ scale: 0.97 }}
           title="返回"
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '0.4rem',
-            width: '100%',
-            padding: '0.5rem 0.8rem',
+            padding: '0.5rem 1rem',
             borderRadius: 10,
             background: 'var(--accent)',
             border: 'none',
