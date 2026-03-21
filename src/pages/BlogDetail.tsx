@@ -372,7 +372,7 @@ export default function BlogDetail() {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem', display: 'flex', gap: '2.5rem', alignItems: 'flex-start' }}>
 
         {/* Left column: article content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, maxWidth: 820 }}>
           {/* Back button */}
           <button
             onClick={() => navigate(-1)}
@@ -425,26 +425,24 @@ export default function BlogDetail() {
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{blog.content || ''}</ReactMarkdown>
           </div>
         </div>
+      </div>
 
-        {/* Right column: sticky info panel */}
-        <div style={{ width: 180, flexShrink: 0 }}>
-          <div style={{ position: 'sticky', top: 80, background: 'rgba(var(--bg-rgb), 0.14)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-            <div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>阅读</div>
-              <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)', lineHeight: 1 }}>{Math.max(1, Math.round(blog.content ? blog.content.split(/\s+/).length / 200 : 0))}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>分钟</div>
-            </div>
-            <div style={{ height: 1, background: 'var(--border)' }} />
-            <div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>字数</div>
-              <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text)' }}>{blog.content ? blog.content.replace(/\s+/g, '').length.toLocaleString() : 0}</div>
-            </div>
-            <div style={{ height: 1, background: 'var(--border)' }} />
-            <div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>发布</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text)' }}>{new Date(blog.created_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-            </div>
-          </div>
+      {/* Right column: floating info panel */}
+      <div style={{ position: 'fixed', top: 80, right: '2rem', width: 160, background: 'rgba(var(--bg-rgb), 0.14)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 50 }}>
+        <div>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>阅读</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text)', lineHeight: 1 }}>{Math.max(1, Math.round(blog.content ? blog.content.split(/\s+/).length / 200 : 0))}</div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>分钟</div>
+        </div>
+        <div style={{ height: 1, background: 'var(--border)' }} />
+        <div>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>字数</div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)' }}>{blog.content ? blog.content.replace(/\s+/g, '').length.toLocaleString() : 0}</div>
+        </div>
+        <div style={{ height: 1, background: 'var(--border)' }} />
+        <div>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>发布</div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text)' }}>{new Date(blog.created_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
         </div>
       </div>
 
