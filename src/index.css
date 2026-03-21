@@ -686,7 +686,7 @@ body::before {
   animation: auroraMove 28s ease-in-out infinite alternate;
   mix-blend-mode: screen;
 }
-body.dark::before {
+[data-theme="dark"] body::before {
   background:
     radial-gradient(ellipse 60% 50% at 20% 25%, rgba(110,80,255,1) 0%, transparent 65%),
     radial-gradient(ellipse 50% 40% at 75% 20%, rgba(50,150,255,1) 0%, transparent 60%),
