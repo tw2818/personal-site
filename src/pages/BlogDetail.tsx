@@ -408,7 +408,7 @@ export default function BlogDetail() {
       {/* Left TOC sidebar: fixed overlay, does not affect article width */}
       <div style={{
         position: 'fixed',
-        left: 'max(1.5rem, calc((100vw - 1100px) / 2 - 220px))',
+        left: 'max(2rem, calc((100vw - 1100px) / 2 - 200px))',
         top: 80,
         width: 180,
         maxHeight: 'calc(100vh - 100px)',
@@ -437,7 +437,8 @@ export default function BlogDetail() {
             cursor: 'pointer',
             fontSize: '0.9rem',
             boxShadow: '0 2px 12px rgba(0,113,227,0.35)',
-            marginLeft: 4,
+            marginLeft: 12,
+            marginBottom: 4,
           }}
         >
           ←
