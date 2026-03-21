@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
@@ -98,6 +98,7 @@ export default function BlogDetail() {
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [readingProgress, setReadingProgress] = useState(0)
+  const [showBackToTop, setShowBackToTop] = useState(false)
   const [headings, setHeadings] = useState<Heading[]>([])
   const [activeHeading, setActiveHeading] = useState('')
 
@@ -112,6 +113,7 @@ export default function BlogDetail() {
       const scrollTop = el.scrollTop || document.body.scrollTop
       const height = el.scrollHeight - el.clientHeight
       setReadingProgress(height > 0 ? Math.round((scrollTop / height) * 100) : 0)
+      setShowBackToTop(scrollTop > 400)
       // Scroll spy: find the heading currently in view
       const headingEls = document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4')
       let current = ''
@@ -720,35 +722,43 @@ export default function BlogDetail() {
       </div>
 
       {/* Back to top */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        title="回到顶部"
-        style={{
-          position: 'fixed',
-          bottom: '2rem',
-          right: '2rem',
-          width: 44,
-          height: 44,
-          borderRadius: '50%',
-          background: 'rgba(var(--bg-rgb), 0.15)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: '1px solid var(--border)',
-          color: 'var(--text)',
-          fontSize: '1.2rem',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-          transition: 'all 0.3s',
-          zIndex: 100,
-        }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)' }}
-        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)' }}
-      >
-        ↑
-      </button>
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            title="回到顶部"
+            style={{
+              position: 'fixed',
+              bottom: '2rem',
+              right: '2rem',
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              background: 'rgba(var(--bg-rgb), 0.15)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid var(--border)',
+              color: 'var(--text)',
+              fontSize: '1.2rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              transition: 'all 0.3s',
+              zIndex: 100,
+            }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            ↑
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
