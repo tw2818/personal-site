@@ -1,10 +1,51 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { ANON_KEY, ADMIN_USER } from '../lib/config'
 
 const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
+
+function TiltCard({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+
+  const springX = useSpring(x, { stiffness: 200, damping: 25 })
+  const springY = useSpring(y, { stiffness: 200, damping: 25 })
+
+  const rotateX = useTransform(springY, [-0.5, 0.5], [8, -8])
+  const rotateY = useTransform(springX, [-0.5, 0.5], [-8, 8])
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return
+    const rect = ref.current.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    x.set((e.clientX - centerX) / rect.width)
+    y.set((e.clientY - centerY) / rect.height)
+  }
+
+  const handleMouseLeave = () => {
+    x.set(0)
+    y.set(0)
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, transformStyle: 'preserve-3d', perspective: 800 }}
+      whileHover={{ scale: 1.02, y: -6 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    >
+      <div className={className} style={{ ...style, transform: 'translateZ(20px)' }}>
+        {children}
+      </div>
+    </motion.div>
+  )
+}
 
 interface Project {
   id: string
@@ -72,7 +113,12 @@ export default function Projects() {
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem' }}>加载中...</div>
         ) : projects.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
-            <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>💼</p>
+            <motion.p
+              className="empty-state-icon"
+              style={{ fontSize: '3rem', marginBottom: '1rem' }}
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            >💼</motion.p>
             <p>还没有项目，{user ? <Link to="/projects/new" style={{ color: 'var(--accent)' }}>添加一个</Link> : '敬请期待'}。</p>
           </motion.div>
         ) : (
@@ -83,9 +129,8 @@ export default function Projects() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
-                whileHover={{ y: -6, scale: 1.01 }}
               >
-                <div className="card">
+                <TiltCard className="card">
                   {p.cover_url && <img src={p.cover_url} alt={p.name} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 10, marginBottom: '1rem' }} />}
                   <h3>{p.featured ? '⭐ ' : ''}{p.name}</h3>
                   <p>{p.description || '暂无描述'}</p>
@@ -94,7 +139,7 @@ export default function Projects() {
                     {p.demo_url && <a href={p.demo_url} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>🔗 演示</a>}
                     {isAdmin && <a href={`/projects/${p.id}/edit`} className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>✏️ 编辑</a>}
                   </div>
-                </div>
+                </TiltCard>
               </motion.div>
             ))}
           </div>

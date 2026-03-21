@@ -1,8 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useMotionValue, useSpring, useTransform, animate } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
-import { SUPABASE_URL, ANON_KEY } from '../lib/config'
+import { SUPABASE_URL, ANON_KEY, ADMIN_USER } from '../lib/config'
+
+
+function AnimatedCounter({ target, duration = 1.5 }: { target: number; duration?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const motionVal = useMotionValue(0)
+  const spring = useSpring(motionVal, { stiffness: 75, damping: 20 })
+  const display = useTransform(spring, (v) => Math.round(v).toString())
+
+  useEffect(() => {
+    const controls = animate(motionVal, target, { duration, ease: 'easeOut' })
+    return controls.stop
+  }, [target, motionVal, duration])
+
+  return <motion.div ref={ref}>{display}</motion.div>
+}
 
 
 // Direct REST API fetch with 5s timeout - bypasses supabase client session issues
@@ -35,21 +50,20 @@ export default function Profile() {
   const [projectCount, setProjectCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  // Admin ID hardcoded
-  const ADMIN_ID = '92781200-e8ad-4271-aa1e-b90b9fcc091c'
-
   useEffect(() => {
     let cancelled = false
 
     const load = async () => {
       setLoading(true)
       try {
-        // Parallelize all fetches into one Promise.all
-        const [profileData, bc, pc] = await Promise.all([
-          apiFetch(`profiles?id=eq.${ADMIN_ID}&select=*`),
-          apiFetch(`blogs?select=id&user_id=eq.${ADMIN_ID}&published=eq.true&limit=1`),
-          apiFetch(`projects?select=id&user_id=eq.${ADMIN_ID}&limit=1`),
-        ])
+        const profileData = await apiFetch(`profiles?github=eq.${encodeURIComponent(ADMIN_USER)}&select=*`)
+        const adminProfile = Array.isArray(profileData) ? profileData[0] : null
+        const adminId = adminProfile?.id
+        
+        const [bc, pc] = adminId ? await Promise.all([
+          apiFetch(`blogs?select=id&user_id=eq.${encodeURIComponent(adminId)}&published=eq.true&limit=1`),
+          apiFetch(`projects?select=id&user_id=eq.${encodeURIComponent(adminId)}&limit=1`),
+        ]) : [null, null]
         if (cancelled) return
         setProfile(Array.isArray(profileData) ? profileData[0] : null)
         setBlogCount(bc?.length || 0)
@@ -137,7 +151,7 @@ export default function Profile() {
             transition={{ delay: 0.35, duration: 0.4 }}
           >
             {profile?.github && (
-              <a href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer"
+              <a href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer" className="social-link"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem', textDecoration: 'none', transition: 'all 0.2s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)'; e.currentTarget.style.transform = '' }}
@@ -191,7 +205,9 @@ export default function Profile() {
             }}
           >
             <div style={{ fontSize: '1.8rem' }}>{item.icon}</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)' }}>{item.value}</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)' }}>
+              {typeof item.value === 'number' ? <AnimatedCounter target={item.value} /> : item.value}
+            </div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.label}</div>
           </motion.div>
         ))}

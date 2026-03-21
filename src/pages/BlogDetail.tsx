@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { useAuth } from '../contexts/AuthContext'
 import { SUPABASE_URL, ANON_KEY, ADMIN_USER } from '../lib/config'
 
@@ -73,18 +74,20 @@ export default function BlogDetail() {
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [readingProgress, setReadingProgress] = useState(0)
+  const [showBackToTop, setShowBackToTop] = useState(false)
 
     const isAdmin = user?.user_metadata?.user_name === ADMIN_USER
   const isAuthor = blog?.user_id === user?.id
   const canModerate = isAdmin || isAuthor
 
-  // Reading progress
+  // Reading progress & back to top visibility
   useEffect(() => {
     const updateProgress = () => {
       const el = document.documentElement
       const scrollTop = el.scrollTop || document.body.scrollTop
       const height = el.scrollHeight - el.clientHeight
       setReadingProgress(height > 0 ? Math.round((scrollTop / height) * 100) : 0)
+      setShowBackToTop(scrollTop > 400)
     }
     window.addEventListener('scroll', updateProgress, { passive: true })
     return () => window.removeEventListener('scroll', updateProgress)
@@ -331,14 +334,29 @@ export default function BlogDetail() {
 
   const getAvatar = (comment: Comment) => {
     if (comment.avatar_url) return comment.avatar_url
-    // Generate initials avatar
-    const name = comment.nickname || '?'
+    // Generate initials avatar - nickname is sanitized before use
+    const rawName = comment.nickname || '?'
+    // Strip any HTML/XML characters to prevent XSS in SVG
+    const name = rawName.replace(/[<>&"']/g, '')
     const initials = name.slice(0, 2).toUpperCase()
-    // Generate a consistent color from nickname
+    // Generate a consistent color from name
     let hash = 0
     for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
-    const hue = hash % 360
-    return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="hsl(${hue},60%,60%)"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="white" font-family="system-ui" font-size="14" font-weight="600">${initials}</text></svg>`)}`
+    const hue = Math.abs(hash % 360)
+    // Build SVG with textContent for safe text insertion
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="hsl(${hue},60%,60%)"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="white" font-family="system-ui" font-size="14" font-weight="600"></text></svg>`
+    // Use DOMParser to safely insert text content
+    try {
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(svg, 'image/svg+xml')
+      const textEl = doc.querySelector('text')
+      if (textEl) textEl.textContent = initials
+      const serializer = new XMLSerializer()
+      const safeSvg = serializer.serializeToString(doc.documentElement)
+      return `data:image/svg+xml,${encodeURIComponent(safeSvg)}`
+    } catch {
+      return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="hsl(200,60%,60%)"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="white" font-family="system-ui" font-size="14" font-weight="600">??</text></svg>`)}`
+    }
   }
 
   if (loading) return <div className="page" style={{ textAlign: 'center', padding: '4rem' }}>加载中...</div>
@@ -404,7 +422,7 @@ export default function BlogDetail() {
 
           {/* Article body */}
           <div className="markdown-body" style={{ lineHeight: 1.9, fontSize: '1.05rem', color: 'var(--text)' }}>
-            <ReactMarkdown>{blog.content || ''}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{blog.content || ''}</ReactMarkdown>
           </div>
         </div>
 
@@ -593,35 +611,43 @@ export default function BlogDetail() {
       </div>
 
       {/* Back to top */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        title="回到顶部"
-        style={{
-          position: 'fixed',
-          bottom: '2rem',
-          right: '2rem',
-          width: 44,
-          height: 44,
-          borderRadius: '50%',
-          background: 'rgba(var(--bg-rgb), 0.15)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: '1px solid var(--border)',
-          color: 'var(--text)',
-          fontSize: '1.2rem',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-          transition: 'all 0.3s',
-          zIndex: 100,
-        }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)' }}
-        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)' }}
-      >
-        ↑
-      </button>
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            title="回到顶部"
+            style={{
+              position: 'fixed',
+              bottom: '2rem',
+              right: '2rem',
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              background: 'rgba(var(--bg-rgb), 0.15)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid var(--border)',
+              color: 'var(--text)',
+              fontSize: '1.2rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              transition: 'all 0.3s',
+              zIndex: 100,
+            }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            ↑
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

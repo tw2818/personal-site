@@ -148,8 +148,9 @@ export default function Blog() {
         {/* Tag filter */}
         {tags.length > 0 && (
           <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button
+            <motion.button
               onClick={() => { setSelectedTag(''); setSearchQuery('') }}
+              whileTap={{ scale: 0.92 }}
               style={{
                 padding: '0.35rem 0.9rem',
                 borderRadius: 980,
@@ -163,14 +164,17 @@ export default function Blog() {
               }}
             >
               🏷️ 全部
-            </button>
+            </motion.button>
             {tags.map(tag => (
-              <button
+              <motion.button
                 key={tag.id}
                 onClick={() => {
                   setSelectedTag(tag.slug)
                   setSearchQuery(tag.slug)
                 }}
+                whileTap={{ scale: 0.92 }}
+                animate={selectedTag === tag.slug ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                 style={{
                   padding: '0.35rem 0.9rem',
                   borderRadius: 980,
@@ -184,14 +188,22 @@ export default function Blog() {
                 }}
               >
                 {tag.name}
-              </button>
+              </motion.button>
             ))}
           </div>
         )}
 
         {/* Search input */}
-        <div style={{ position: 'relative', marginBottom: '1.5rem', maxWidth: 400 }}>
-          <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>🔍</span>
+        <motion.div
+          style={{ position: 'relative', marginBottom: '1.5rem', maxWidth: 400 }}
+          animate={searchQuery ? { scale: [1, 1.01, 1] } : { scale: 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.span
+            style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '0.9rem', zIndex: 1 }}
+            animate={searchQuery ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+            transition={{ duration: 0.2 }}
+          >🔍</motion.span>
           <input
             type="text"
             value={searchQuery}
@@ -208,7 +220,7 @@ export default function Blog() {
             onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(0,113,227,0.15)' }}
             onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
           />
-        </div>
+        </motion.div>
 
         {loading ? (
           <div className="item-list">
@@ -227,7 +239,12 @@ export default function Blog() {
           </div>
         ) : blogs.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
-            <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</p>
+            <motion.p
+              className="empty-state-icon"
+              style={{ fontSize: '3rem', marginBottom: '1rem' }}
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            >🔍</motion.p>
             <p>{searchQuery ? '无结果' : (tab === 'published' ? '还没有已发布的文章' : '草稿箱是空的')}</p>
           </motion.div>
         ) : (

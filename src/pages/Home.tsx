@@ -4,6 +4,33 @@ import { motion } from 'framer-motion'
 import { SUPABASE_URL, ANON_KEY } from '../lib/config'
 
 
+function TypewriterText({ text, delay = 0 }: { text: string; delay?: number }) {
+  const [displayText, setDisplayText] = useState('')
+  const [started, setStarted] = useState(false)
+
+  useEffect(() => {
+    const startTimer = setTimeout(() => setStarted(true), delay * 1000)
+    return () => clearTimeout(startTimer)
+  }, [delay])
+
+  useEffect(() => {
+    if (!started) return
+    let i = 0
+    const interval = setInterval(() => {
+      if (i <= text.length) {
+        setDisplayText(text.slice(0, i))
+        i++
+      } else {
+        clearInterval(interval)
+      }
+    }, 60)
+    return () => clearInterval(interval)
+  }, [started, text])
+
+  return <span>{displayText}<motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }} style={{ display: displayText.length < text.length ? 'inline' : 'none' }}>|</motion.span></span>
+}
+
+
 interface RecentBlog {
   id: string
   title: string
@@ -67,7 +94,7 @@ export default function Home() {
           initial="hidden"
           animate="visible"
         >
-          你好，我叫 twebery。
+          <TypewriterText text="你好，我叫 twebery。" delay={0.5} />
         </motion.h1>
         <motion.p
           custom={1}
