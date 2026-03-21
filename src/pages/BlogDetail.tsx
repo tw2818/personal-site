@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import { useAuth } from '../contexts/AuthContext'
@@ -61,6 +61,7 @@ interface Comment {
 
 export default function BlogDetail() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const [blog, setBlog] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -334,6 +335,27 @@ export default function BlogDetail() {
     <div className="page">
       <div className="section" style={{ maxWidth: 720 }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          {/* Back button */}
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              padding: '0.3rem 0',
+              marginBottom: '1.2rem',
+              transition: 'color 0.2s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+          >
+            ← 返回
+          </button>
           {blog.cover_url && (
             <img src={blog.cover_url} alt={blog.title} style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 16, marginBottom: '2rem' }} />
           )}
