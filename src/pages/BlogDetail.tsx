@@ -17,6 +17,36 @@ const getLocalToken = () => {
   } catch { return null }
 }
 
+const refreshToken = async (): Promise<string | null> => {
+  try {
+    const raw = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
+    if (!raw) return null
+    const { refresh_token } = JSON.parse(raw)
+    if (!refresh_token) return null
+    const res = await fetch(
+      'https://osteeuwotaywuqsztipz.supabase.co/auth/v1/token?grant_type=refresh_token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY },
+        body: JSON.stringify({ refresh_token }),
+      }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    const newToken = data?.access_token
+    if (newToken) {
+      const old = JSON.parse(raw)
+      localStorage.setItem('sb-osteeuwotaywuqsztipz-auth-token', JSON.stringify({
+        ...old,
+        access_token: newToken,
+        refresh_token: data.refresh_token || old.refresh_token,
+        expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+      }))
+    }
+    return newToken
+  } catch { return null }
+}
+
 
 interface Comment {
   id: string
@@ -119,23 +149,21 @@ export default function BlogDetail() {
     e.preventDefault()
     if (!newComment.trim() || submitting) return
 
-    // Read token directly from localStorage — bypasses stale/null accessToken React state
-    const token = getLocalToken()
-    if (!token) {
-      setSubmitError('请先登录')
-      return
-    }
+    // Get token — try refresh if no token found (handles expired tokens)
+    let token = getLocalToken()
+    if (!token) token = await refreshToken()
+    if (!token) { setSubmitError('请先登录'); return }
 
     setSubmitting(true)
     setSubmitError('')
     setSubmitSuccess(false)
 
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
+    const doInsert = async (t: string) =>
+      fetch(`${SUPABASE_URL}/rest/v1/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${t}`,
           Prefer: 'return=representation',
         },
         body: JSON.stringify({
@@ -145,6 +173,14 @@ export default function BlogDetail() {
           content: newComment.trim(),
         }),
       })
+
+    try {
+      let res = await doInsert(token)
+      // If expired token, refresh and retry once
+      if (res.status === 401) {
+        const newToken = await refreshToken()
+        if (newToken) res = await doInsert(newToken)
+      }
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
@@ -165,20 +201,23 @@ export default function BlogDetail() {
 
   // Delete comment
   const handleDeleteComment = async (commentId: string) => {
-    const token = getLocalToken()
+    let token = getLocalToken()
+    if (!token) token = await refreshToken()
     if (!token) return
     if (!confirm('Delete this comment?')) return
 
     try {
-      const res = await fetch(
+      let res = await fetch(
         `${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }
       )
+      if (res.status === 401) {
+        const newToken = await refreshToken()
+        if (newToken) res = await fetch(
+          `${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`,
+          { method: 'DELETE', headers: { Authorization: `Bearer ${newToken}` } }
+        )
+      }
       if (!res.ok) throw new Error('Failed to delete')
       setComments(prev => prev.filter(c => c.id !== commentId))
     } catch (err: any) {
@@ -188,11 +227,12 @@ export default function BlogDetail() {
 
   // Pin/unpin comment
   const handlePinComment = async (comment: Comment) => {
-    const token = getLocalToken()
+    let token = getLocalToken()
+    if (!token) token = await refreshToken()
     if (!token) return
 
     try {
-      const res = await fetch(
+      let res = await fetch(
         `${SUPABASE_URL}/rest/v1/comments?id=eq.${comment.id}`,
         {
           method: 'PATCH',
@@ -204,6 +244,21 @@ export default function BlogDetail() {
           body: JSON.stringify({ pinned: !comment.pinned }),
         }
       )
+      if (res.status === 401) {
+        const newToken = await refreshToken()
+        if (newToken) res = await fetch(
+          `${SUPABASE_URL}/rest/v1/comments?id=eq.${comment.id}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${newToken}`,
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify({ pinned: !comment.pinned }),
+          }
+        )
+      }
       if (!res.ok) throw new Error('Failed to update')
       const updated = await res.json()
       if (Array.isArray(updated) && updated[0]) {
