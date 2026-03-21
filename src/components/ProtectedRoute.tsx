@@ -1,7 +1,8 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
-const ALLOWED_USER = 'tw2818'
+import { ADMIN_USER } from '../lib/config'
+const ALLOWED_USER = ADMIN_USER
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()

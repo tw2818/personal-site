@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
+import { ADMIN_USER } from '../lib/config'
 import { directWrite } from '../lib/apiWrite'
 import { supabase } from '../lib/supabase'
 
@@ -189,7 +190,7 @@ function UsersTab() {
                     {new Date(user.created_at).toLocaleDateString('zh-CN')}
                   </td>
                   <td style={{ padding: '1rem' }}>
-                    {user.github !== 'tw2818' ? (
+                    {user.github !== ADMIN_USER ? (
                       <button
                         onClick={() => handleDelete(user.id, user.email || user.nickname || '该用户')}
                         disabled={deleting === user.id}

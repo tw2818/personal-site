@@ -3,10 +3,9 @@ import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import { useAuth } from '../contexts/AuthContext'
+import { SUPABASE_URL, ANON_KEY, ADMIN_USER } from '../lib/config'
 
 
-const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
 
 // Read token directly from localStorage to avoid stale/null React state
 const getLocalToken = () => {
@@ -73,7 +72,7 @@ export default function BlogDetail() {
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
-  const isAdmin = user?.user_metadata?.user_name === 'tw2818'
+    const isAdmin = user?.user_metadata?.user_name === ADMIN_USER
   const isAuthor = blog?.user_id === user?.id
   const canModerate = isAdmin || isAuthor
 
@@ -238,7 +237,7 @@ export default function BlogDetail() {
         if (newToken) {
           res = await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`, {
             method: 'DELETE',
-            headers: { Authorization: `Bearer ${newToken}` },
+            headers: { apikey: ANON_KEY, Authorization: `Bearer ${newToken}` },
           })
         } else {
           throw new Error('登录已过期，请重新登录')

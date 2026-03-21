@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import { SUPABASE_URL, ANON_KEY } from '../lib/config'
 
-const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
 
 export interface Tag {
   id: string

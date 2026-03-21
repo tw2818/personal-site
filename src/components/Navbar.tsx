@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { ADMIN_USER } from '../lib/config'
 import { motion } from 'framer-motion'
 
 export default function Navbar() {
@@ -43,7 +44,7 @@ export default function Navbar() {
         </li>
         {user ? (
           <>
-            {user.user_metadata?.user_name === 'tw2818' && (
+            {user.user_metadata?.user_name === ADMIN_USER && (
               <>
                 <li><Link to="/admin">管理</Link></li>
 
