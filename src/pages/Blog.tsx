@@ -202,7 +202,7 @@ export default function Blog() {
           transition={{ duration: 0.2 }}
         >
           <motion.span
-            style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '0.9rem', zIndex: 1 }}
+            style={{ position: 'absolute', left: '1rem', top: 0, bottom: 0, display: 'flex', alignItems: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', zIndex: 1 }}
             animate={searchQuery ? { scale: [1, 1.15, 1] } : { scale: 1 }}
             transition={{ duration: 0.2 }}
           >🔍</motion.span>
