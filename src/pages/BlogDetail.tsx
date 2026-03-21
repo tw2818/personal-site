@@ -405,53 +405,60 @@ export default function BlogDetail() {
       <div style={{ position: 'fixed', top: 0, height: 3, width: readingProgress + '%', background: 'var(--accent)', zIndex: 200 }} />
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(var(--bg-rgb), 0.1)', zIndex: 199 }} />
 
-      {/* Main content: article + left TOC */}
+      {/* Left TOC sidebar: fixed overlay, does not affect article width */}
+      {headings.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          left: 'max(1.5rem, calc((100vw - 1100px) / 2 - 220px))',
+          top: 80,
+          width: 180,
+          maxHeight: 'calc(100vh - 100px)',
+          overflowY: 'auto',
+          zIndex: 50,
+        }}>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>目录</div>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+            {headings.map(h => (
+              <a
+                key={h.id}
+                href={`#${h.id}`}
+                onClick={e => {
+                  e.preventDefault()
+                  const el = document.getElementById(h.id)
+                  if (el) {
+                    const top = el.getBoundingClientRect().top + window.scrollY - 90
+                    window.scrollTo({ top, behavior: 'smooth' })
+                  }
+                }}
+                style={{
+                  display: 'block',
+                  fontSize: h.level === 1 ? '0.78rem' : h.level === 2 ? '0.72rem' : '0.68rem',
+                  fontWeight: h.level === 1 ? 600 : 400,
+                  color: activeHeading === h.id ? 'var(--accent)' : 'var(--text-secondary)',
+                  paddingLeft: (h.level - 1) * 0.75 + 'rem',
+                  paddingTop: '0.15rem',
+                  paddingBottom: '0.15rem',
+                  borderLeft: '2px solid',
+                  borderLeftColor: activeHeading === h.id ? 'var(--accent)' : 'transparent',
+                  transition: 'all 0.2s',
+                  textDecoration: 'none',
+                  lineHeight: 1.4,
+                }}
+              >
+                {h.text}
+              </a>
+            ))}
+          </nav>
+        </div>
+      )}
+
+      {/* Main content: centered article */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 2rem' }}>
-        <div style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start' }}>
 
-          {/* Left TOC sidebar */}
-          {headings.length > 0 && (
-            <div style={{ width: 180, flexShrink: 0, position: 'sticky', top: 80, maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>目录</div>
-              <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                {headings.map(h => (
-                  <a
-                    key={h.id}
-                    href={`#${h.id}`}
-                    onClick={e => {
-                      e.preventDefault()
-                      const el = document.getElementById(h.id)
-                      if (el) {
-                        const top = el.getBoundingClientRect().top + window.scrollY - 90
-                        window.scrollTo({ top, behavior: 'smooth' })
-                      }
-                    }}
-                    style={{
-                      display: 'block',
-                      fontSize: h.level === 1 ? '0.8rem' : h.level === 2 ? '0.75rem' : '0.7rem',
-                      fontWeight: h.level === 1 ? 600 : 400,
-                      color: activeHeading === h.id ? 'var(--accent)' : 'var(--text-secondary)',
-                      paddingLeft: (h.level - 1) * 0.75 + 'rem',
-                      paddingTop: '0.2rem',
-                      paddingBottom: '0.2rem',
-                      borderLeft: '2px solid',
-                      borderLeftColor: activeHeading === h.id ? 'var(--accent)' : 'transparent',
-                      transition: 'all 0.2s',
-                      textDecoration: 'none',
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {h.text}
-                  </a>
-                ))}
-              </nav>
-            </div>
-          )}
-
-          {/* Article content */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Back button */}
-            <button
+        {/* Article content */}
+        <div>
+          {/* Back button */}
+          <button
             onClick={() => navigate(-1)}
             style={{
               display: 'inline-flex',
@@ -523,7 +530,6 @@ export default function BlogDetail() {
           {/* Article body */}
           <div className="markdown-body" style={{ lineHeight: 1.9, fontSize: '1.05rem', color: 'var(--text)' }} id="article-content">
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]}>{blog.content || ''}</ReactMarkdown>
-          </div>
           </div>
         </div>
       </div>
