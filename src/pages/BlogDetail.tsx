@@ -416,69 +416,82 @@ export default function BlogDetail() {
         zIndex: 50,
         display: 'flex',
         flexDirection: 'column',
-        gap: '1rem',
+        gap: '0.75rem',
       }}>
-        {/* Back button */}
-        <motion.button
-          onClick={() => navigate(-1)}
-          whileHover={{ x: -3 }}
-          whileTap={{ scale: 0.98 }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            padding: '0.5rem 1rem',
-            borderRadius: 10,
-            background: 'rgba(var(--bg-rgb), 0.12)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid var(--border)',
-            color: 'var(--text)',
-            cursor: 'pointer',
-            fontSize: '0.85rem',
-            fontWeight: 500,
-          }}
-        >
-          ← 返回
-        </motion.button>
+        {/* Sidebar card */}
+        <div style={{
+          background: 'rgba(var(--bg-rgb), 0.14)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid var(--border)',
+          borderRadius: 16,
+          padding: '1rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem',
+        }}>
+          {/* Back button */}
+          <motion.button
+            onClick={() => navigate(-1)}
+            whileHover={{ x: -2 }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.45rem 0.8rem',
+              borderRadius: 8,
+              background: 'rgba(var(--bg-rgb), 0.2)',
+              border: '1px solid var(--border)',
+              color: 'var(--text)',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              fontWeight: 500,
+              width: '100%',
+              justifyContent: 'center',
+            }}
+          >
+            ← 返回
+          </motion.button>
 
-        {headings.length > 0 && (
-          <>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>目录</div>
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {headings.map(h => (
-                <a
-                  key={h.id}
-                  href={`#${h.id}`}
-                  onClick={e => {
-                    e.preventDefault()
-                    const el = document.getElementById(h.id)
-                    if (el) {
-                      const top = el.getBoundingClientRect().top + window.scrollY - 90
-                      window.scrollTo({ top, behavior: 'smooth' })
-                    }
-                  }}
-                  style={{
-                    display: 'block',
-                    fontSize: h.level === 1 ? '0.88rem' : h.level === 2 ? '0.82rem' : '0.78rem',
-                    fontWeight: h.level === 1 ? 600 : 400,
-                    color: activeHeading === h.id ? 'var(--accent)' : 'var(--text-secondary)',
-                    paddingLeft: (h.level - 1) * 0.75 + 'rem',
-                    paddingTop: '0.2rem',
-                    paddingBottom: '0.2rem',
-                    borderLeft: '2px solid',
-                    borderLeftColor: activeHeading === h.id ? 'var(--accent)' : 'transparent',
-                    transition: 'all 0.2s',
-                    textDecoration: 'none',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {h.text}
-                </a>
-              ))}
-            </nav>
-          </>
-        )}
+          {headings.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, paddingLeft: '0.4rem' }}>目录</div>
+              <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                {headings.map(h => (
+                  <a
+                    key={h.id}
+                    href={`#${h.id}`}
+                    onClick={e => {
+                      e.preventDefault()
+                      const el = document.getElementById(h.id)
+                      if (el) {
+                        const top = el.getBoundingClientRect().top + window.scrollY - 90
+                        window.scrollTo({ top, behavior: 'smooth' })
+                      }
+                    }}
+                    style={{
+                      display: 'block',
+                      fontSize: h.level === 1 ? '0.82rem' : h.level === 2 ? '0.78rem' : '0.75rem',
+                      fontWeight: h.level === 1 ? 500 : 400,
+                      color: activeHeading === h.id ? 'var(--accent)' : 'var(--text-secondary)',
+                      paddingLeft: h.level === 1 ? '0.4rem' : h.level === 2 ? '0.8rem' : '1.2rem',
+                      paddingTop: '0.25rem',
+                      paddingBottom: '0.25rem',
+                      borderRadius: 6,
+                      background: activeHeading === h.id ? 'rgba(var(--accent), 0.1)' : 'transparent',
+                      transition: 'all 0.15s ease',
+                      textDecoration: 'none',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {h.text}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main content: centered article */}
