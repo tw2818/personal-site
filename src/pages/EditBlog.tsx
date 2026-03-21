@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { directWrite } from '../lib/apiWrite'
-import { uploadImage } from '../lib/storage'
+import { uploadImage, deleteImageIfUnused, cleanupOrphanImages } from '../lib/storage'
 import RichEditor from '../components/RichEditor'
 import TagSelector from '../components/TagSelector'
 import { SUPABASE_URL, ANON_KEY } from '../lib/config'
@@ -123,6 +123,7 @@ export default function EditBlog() {
     )
     await cleanupUnusedTags()
     setSaving(false)
+    cleanupOrphanImages()
     navigate('/blog')
   }
 
@@ -130,6 +131,7 @@ export default function EditBlog() {
     if (!id || !confirm('确定删除这篇文章？')) return
     await directWrite('DELETE', 'blogs', undefined, `id=eq.${encodeURIComponent(id)}`)
     await cleanupUnusedTags()
+    await deleteImageIfUnused(coverUrl)
     navigate('/blog')
   }
 

@@ -4,3 +4,6 @@ export const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
 // Admin user — only this GitHub username can access /admin
 export const ADMIN_USER = 'tw2818'
+
+// ⚠️ Service role key — only used for storage deletion, never exposed publicly
+export const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY as string
