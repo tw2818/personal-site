@@ -72,10 +72,23 @@ export default function BlogDetail() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [readingProgress, setReadingProgress] = useState(0)
 
     const isAdmin = user?.user_metadata?.user_name === ADMIN_USER
   const isAuthor = blog?.user_id === user?.id
   const canModerate = isAdmin || isAuthor
+
+  // Reading progress
+  useEffect(() => {
+    const updateProgress = () => {
+      const el = document.documentElement
+      const scrollTop = el.scrollTop || document.body.scrollTop
+      const height = el.scrollHeight - el.clientHeight
+      setReadingProgress(height > 0 ? Math.round((scrollTop / height) * 100) : 0)
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true })
+    return () => window.removeEventListener('scroll', updateProgress)
+  }, [])
 
   // Fetch blog
   useEffect(() => {
@@ -333,6 +346,9 @@ export default function BlogDetail() {
 
   return (
     <div className="page">
+      {/* Reading progress bar */}
+      <div style={{ position: 'fixed', top: 0, left: 0, height: 3, width: readingProgress + '%', background: 'var(--accent)', zIndex: 200, transition: 'width 0.1s', borderRadius: '0 2px 2px 0' }} />
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(var(--bg-rgb), 0.1)', zIndex: 199 }} />
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "2rem 2rem 4rem" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           {/* Back button */}
