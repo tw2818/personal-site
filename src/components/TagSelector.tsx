@@ -54,6 +54,33 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
       setLoading(false)
     }
   }
+  // Cleanup orphan tags (usage_count=0) from DB - called after creating a new tag
+  const cleanupUnusedTags = async () => {
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/blogs?select=tags&published=eq.true', {
+        headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY },
+      })
+      const blogs = await res.json()
+      const usage: Record<string, number> = {}
+      blogs.forEach((b: any) => b.tags?.forEach((t: string) => { usage[t] = (usage[t] || 0) + 1 }))
+      const allTagsRes = await fetch(SUPABASE_URL + '/rest/v1/tags?select=id,slug', {
+        headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY },
+      })
+      const allTags: { id: string; slug: string }[] = await allTagsRes.json()
+      const unused = allTags.filter((t: { id: string; slug: string }) =>
+        !usage[t.slug] && !value.includes(t.slug)
+      )
+      if (unused.length > 0 && accessToken) {
+        const ids = unused.map((t: { id: string }) => t.id).join(',')
+        await fetch(SUPABASE_URL + '/rest/v1/tags?id=in.(' + ids + ')', {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + accessToken },
+        })
+      }
+    } catch {}
+  }
+
+
 
   useEffect(() => {
     fetchTags()
@@ -132,6 +159,7 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
           onChange([...value, slug])
           setInputValue('')
           setShowDropdown(false)
+          cleanupUnusedTags()
         } else {
           const err = await res.json()
           setInputError('创建失败: ' + (err.message || JSON.stringify(err)))
