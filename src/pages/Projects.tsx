@@ -129,7 +129,21 @@ export default function Projects() {
                 transition={{ delay: i * 0.1, duration: 0.5 }}
               >
                 <TiltCard className="card">
-                  {p.cover_url && <img src={p.cover_url} alt={p.name} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 10, marginBottom: '1rem' }} />}
+                  {p.cover_url && (
+                    <div style={{
+                      width: '100%',
+                      height: 160,
+                      borderRadius: 10,
+                      marginBottom: '1rem',
+                      background: 'linear-gradient(135deg, rgba(var(--bg-rgb), 0.4) 0%, rgba(var(--bg-rgb), 0.7) 100%)',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <img src={p.cover_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+                    </div>
+                  )}
                   <h3>{p.featured ? '⭐ ' : ''}{p.name}</h3>
                   <p>{p.description || '暂无描述'}</p>
                   <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
