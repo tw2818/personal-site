@@ -368,11 +368,11 @@ export default function BlogDetail() {
       <div style={{ position: 'fixed', top: 0, height: 3, width: readingProgress + '%', background: 'var(--accent)', zIndex: 200 }} />
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(var(--bg-rgb), 0.1)', zIndex: 199 }} />
 
-      {/* Main content: two-column layout */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem', display: 'flex', gap: '2.5rem', alignItems: 'flex-start' }}>
+      {/* Main content: centered article */}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem' }}>
 
-        {/* Left column: article content */}
-        <div style={{ flex: 1, minWidth: 0, maxWidth: 820 }}>
+        {/* Article content */}
+        <div>
           {/* Back button */}
           <button
             onClick={() => navigate(-1)}
