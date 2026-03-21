@@ -5,6 +5,10 @@ import { useAuth } from '../contexts/AuthContext'
 import { directWrite } from '../lib/apiWrite'
 import { uploadImage } from '../lib/storage'
 import RichEditor from '../components/RichEditor'
+import TagSelector from '../components/TagSelector'
+
+const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
 
 export default function EditBlog() {
   const { id } = useParams<{ id: string }>()
@@ -13,7 +17,7 @@ export default function EditBlog() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [coverUrl, setCoverUrl] = useState('')
-  const [tags, setTags] = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [published, setPublished] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -39,11 +43,11 @@ export default function EditBlog() {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 8000)
     fetch(
-      `https://osteeuwotaywuqsztipz.supabase.co/rest/v1/blogs?id=eq.${encodeURIComponent(id)}&select=*`,
+      `${SUPABASE_URL}/rest/v1/blogs?id=eq.${encodeURIComponent(id)}&select=*`,
       {
         headers: {
-          apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM',
+          apikey: ANON_KEY,
+          Authorization: 'Bearer ' + ANON_KEY,
         },
         signal: controller.signal,
       }
@@ -53,7 +57,15 @@ export default function EditBlog() {
         setTitle(data[0].title || '')
         setContent(data[0].content || '')
         setCoverUrl(data[0].cover_url || '')
-        setTags((data[0].tags || []).join(', '))
+        // Parse tags - can be JSON array or comma-separated string
+        const rawTags = data[0].tags
+        let parsed: string[] = []
+        if (Array.isArray(rawTags)) {
+          parsed = rawTags
+        } else if (typeof rawTags === 'string') {
+          try { parsed = JSON.parse(rawTags) } catch { parsed = rawTags.split(',').map((t: string) => t.trim()).filter(Boolean) }
+        }
+        setSelectedTags(parsed)
         setPublished(data[0].published || false)
       }
       setLoading(false)
@@ -71,7 +83,7 @@ export default function EditBlog() {
       'PATCH', 'blogs',
       {
         title: title.trim(), content: content.trim(),
-        cover_url: coverUrl.trim(), tags: tags.split(',').map(t => t.trim()).filter(Boolean), published,
+        cover_url: coverUrl.trim(), tags: selectedTags, published,
         updated_at: new Date().toISOString(),
       },
       `id=eq.${encodeURIComponent(id)}`,
@@ -104,7 +116,10 @@ export default function EditBlog() {
             <input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="或直接输入封面图 URL" style={{ marginTop: '0.5rem' }} />
           </div>
           <div className="form-group"><label>正文 *</label><RichEditor value={content} onChange={setContent} /></div>
-          <div className="form-group"><label>标签（逗号分隔）</label><input className="form-input" value={tags} onChange={e => setTags(e.target.value)} placeholder="react, typescript" /></div>
+          <div className="form-group">
+            <label>标签</label>
+            <TagSelector value={selectedTags} onChange={setSelectedTags} accessToken={accessToken} />
+          </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
             <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} />
             <span style={{ fontSize: '0.95rem' }}>已发布</span>

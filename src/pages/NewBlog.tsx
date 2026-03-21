@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { directWrite } from '../lib/apiWrite'
 import { uploadImage } from '../lib/storage'
 import RichEditor from '../components/RichEditor'
+import TagSelector from '../components/TagSelector'
 
 export default function NewBlog() {
   const { user, accessToken } = useAuth()
@@ -12,7 +13,7 @@ export default function NewBlog() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [coverUrl, setCoverUrl] = useState('')
-  const [tags, setTags] = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [published, setPublished] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
@@ -38,7 +39,7 @@ export default function NewBlog() {
     setSaving(true)
     const { error } = await directWrite('POST', 'blogs', {
       user_id: user.id, title: title.trim(), content: content.trim(),
-      cover_url: coverUrl.trim(), tags: tags.split(',').map(t => t.trim()).filter(Boolean), published,
+      cover_url: coverUrl.trim(), tags: selectedTags, published,
     }, '', accessToken)
     setSaving(false)
     if (!error) navigate('/blog')
@@ -59,7 +60,10 @@ export default function NewBlog() {
             <input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="或直接输入封面图 URL" style={{ marginTop: '0.5rem' }} />
           </div>
           <div className="form-group"><label>正文 *</label><RichEditor value={content} onChange={setContent} /></div>
-          <div className="form-group"><label>标签（逗号分隔）</label><input className="form-input" value={tags} onChange={e => setTags(e.target.value)} placeholder="react, typescript" /></div>
+          <div className="form-group">
+            <label>标签</label>
+            <TagSelector value={selectedTags} onChange={setSelectedTags} accessToken={accessToken} />
+          </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
             <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} />
             <span style={{ fontSize: '0.95rem' }}>立即发布（不勾选则存为草稿）</span>

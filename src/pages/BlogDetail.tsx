@@ -149,6 +149,20 @@ export default function BlogDetail() {
     e.preventDefault()
     if (!newComment.trim() || submitting) return
 
+    // DEBUG: check localStorage and log to console
+    const rawDebug = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
+    if (!rawDebug) {
+      setSubmitError('DEBUG: localStorage NULL — check DevTools console')
+      console.debug('[DEBUG] localStorage key NULL')
+    } else {
+      try {
+        const parsed = JSON.parse(rawDebug)
+        console.debug('[DEBUG] localStorage:', { has_access_token: !!parsed.access_token, has_refresh_token: !!parsed.refresh_token, at_prefix: parsed.access_token?.substring(0, 15) })
+      } catch {
+        console.debug('[DEBUG] localStorage parse error')
+      }
+    }
+
     // Get token — try refresh if no token found (handles expired tokens)
     let token = getLocalToken()
     if (!token) token = await refreshToken()
@@ -158,11 +172,13 @@ export default function BlogDetail() {
     setSubmitError('')
     setSubmitSuccess(false)
 
-    const doInsert = async (t: string) =>
-      fetch(`${SUPABASE_URL}/rest/v1/comments`, {
+    const doInsert = async (t: string) => {
+      console.debug('[DEBUG] POST with token prefix:', t?.substring(0, 15), 'full_len:', t?.length)
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'apikey': ANON_KEY,
           Authorization: `Bearer ${t}`,
           Prefer: 'return=representation',
         },
@@ -173,17 +189,24 @@ export default function BlogDetail() {
           content: newComment.trim(),
         }),
       })
+      console.debug('[DEBUG] POST response status:', res.status, res.statusText)
+      return res
+    }
 
     try {
       let res = await doInsert(token)
       // If expired token, refresh and retry once
       if (res.status === 401) {
+        console.debug('[DEBUG] Got 401, attempting token refresh')
         const newToken = await refreshToken()
+        console.debug('[DEBUG] refresh result:', newToken ? 'SUCCESS prefix=' + newToken.substring(0, 15) : 'FAILED')
         if (newToken) res = await doInsert(newToken)
       }
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
+        const errBody = await res.text()
+        console.debug('[DEBUG] POST error body:', errBody)
+        const err = JSON.parse(errBody).catch(() => ({}))
         throw new Error(err.message || 'Failed to post comment')
       }
 
@@ -209,13 +232,13 @@ export default function BlogDetail() {
     try {
       let res = await fetch(
         `${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`,
-        { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }
+        { method: 'DELETE', headers: { 'apikey': ANON_KEY, Authorization: `Bearer ${token}` } }
       )
       if (res.status === 401) {
         const newToken = await refreshToken()
         if (newToken) res = await fetch(
           `${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`,
-          { method: 'DELETE', headers: { Authorization: `Bearer ${newToken}` } }
+          { method: 'DELETE', headers: { 'apikey': ANON_KEY, Authorization: `Bearer ${newToken}` } }
         )
       }
       if (!res.ok) throw new Error('Failed to delete')
@@ -238,6 +261,7 @@ export default function BlogDetail() {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
+            'apikey': ANON_KEY,
             Authorization: `Bearer ${token}`,
             Prefer: 'return=representation',
           },
@@ -252,6 +276,7 @@ export default function BlogDetail() {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
+              'apikey': ANON_KEY,
               Authorization: `Bearer ${newToken}`,
               Prefer: 'return=representation',
             },

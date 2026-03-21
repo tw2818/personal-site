@@ -6,10 +6,10 @@ import { useAuth } from '../contexts/AuthContext'
 const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
 
-// Direct REST API fetch with timeout - bypasses supabase client session issues
+// Direct REST API fetch with 5s timeout - bypasses supabase client session issues
 async function apiFetch(sql: string, params?: Record<string, string>): Promise<any> {
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 8000)
+  const timer = setTimeout(() => controller.abort(), 5000)
   try {
     let url = `${SUPABASE_URL}/rest/v1/${sql}`
     if (params) {
@@ -40,27 +40,57 @@ export default function Profile() {
   const ADMIN_ID = '92781200-e8ad-4271-aa1e-b90b9fcc091c'
 
   useEffect(() => {
+    let cancelled = false
+
     const load = async () => {
       setLoading(true)
       try {
-        const profileData = await apiFetch(`profiles?id=eq.${ADMIN_ID}&select=*`)
+        // Parallelize all fetches into one Promise.all
+        const [profileData, bc, pc] = await Promise.all([
+          apiFetch(`profiles?id=eq.${ADMIN_ID}&select=*`),
+          apiFetch(`blogs?select=id&user_id=eq.${ADMIN_ID}&published=eq.true&limit=1`),
+          apiFetch(`projects?select=id&user_id=eq.${ADMIN_ID}&limit=1`),
+        ])
+        if (cancelled) return
         setProfile(Array.isArray(profileData) ? profileData[0] : null)
-
-        const bc = await apiFetch('blogs?select=id&user_id=eq.' + ADMIN_ID + '&published=eq.true&limit=1')
-        const pc = await apiFetch('projects?select=id&user_id=eq.' + ADMIN_ID + '&limit=1')
-
-        // Count from response headers
         setBlogCount(bc?.length || 0)
         setProjectCount(pc?.length || 0)
       } catch {
         // silently fail
       }
-      setLoading(false)
+      if (!cancelled) setLoading(false)
     }
     load()
+    return () => { cancelled = true }
   }, [])
 
-  if (loading) return <div className="page" style={{ textAlign: 'center', padding: '6rem' }}>加载中...</div>
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="profile-header">
+          <div className="skeleton-avatar" />
+          <div className="skeleton-title" />
+          <div className="skeleton-text skeleton-text--short" />
+          <div className="skeleton-text skeleton-text--medium" />
+          <div className="skeleton-buttons">
+            <div className="skeleton-btn" />
+            <div className="skeleton-btn" />
+          </div>
+        </div>
+        <div className="section">
+          <div className="card-grid">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="card skeleton-card">
+                <div className="skeleton-icon" />
+                <div className="skeleton-text skeleton-text--short" />
+                <div className="skeleton-text skeleton-text--long" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const avatar = profile?.avatar_url || 'https://github.com/github.png'
   const name = profile?.nickname || profile?.github || '未设置昵称'
