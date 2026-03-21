@@ -44,8 +44,8 @@ export default function Blog() {
       const filter = tab === 'published' ? 'published=eq.true' : 'published=eq.false'
       let url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&order=created_at.desc`
       if (searchQuery.trim()) {
-        const query = encodeURIComponent(searchQuery.trim())
-        url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&title=ilike.*${query}*&order=created_at.desc`
+        // Don't add server-side title filter — client-side filter handles both title and tag search
+        url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&order=created_at.desc`
       }
       const res = await fetch(url, {
         headers: {
