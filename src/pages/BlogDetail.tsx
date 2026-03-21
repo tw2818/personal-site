@@ -7,6 +7,16 @@ import { useAuth } from '../contexts/AuthContext'
 const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdGVldXdvdGF5d3Vxc3p0aXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTk0MzMsImV4cCI6MjA4OTU3NTQzM30.wgHZxt9bDT4eWg6beHzZUMsMwnDoIexU_nHUudneSJM'
 
+// Read token directly from localStorage to avoid stale/null React state
+const getLocalToken = () => {
+  try {
+    const raw = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed.access_token || null
+  } catch { return null }
+}
+
 
 interface Comment {
   id: string
@@ -21,7 +31,7 @@ interface Comment {
 
 export default function BlogDetail() {
   const { id } = useParams<{ id: string }>()
-  const { user, accessToken } = useAuth()
+  const { user } = useAuth()
   const [blog, setBlog] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [comments, setComments] = useState<Comment[]>([])
@@ -107,7 +117,14 @@ export default function BlogDetail() {
   // Submit new comment
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newComment.trim() || !accessToken || submitting) return
+    if (!newComment.trim() || submitting) return
+
+    // Read token directly from localStorage — bypasses stale/null accessToken React state
+    const token = getLocalToken()
+    if (!token) {
+      setSubmitError('请先登录')
+      return
+    }
 
     setSubmitting(true)
     setSubmitError('')
@@ -118,9 +135,7 @@ export default function BlogDetail() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(accessToken
-            ? { Authorization: `Bearer ${accessToken}` }
-            : { apikey: ANON_KEY }),
+          Authorization: `Bearer ${token}`,
           Prefer: 'return=representation',
         },
         body: JSON.stringify({
@@ -150,7 +165,8 @@ export default function BlogDetail() {
 
   // Delete comment
   const handleDeleteComment = async (commentId: string) => {
-    if (!accessToken) return
+    const token = getLocalToken()
+    if (!token) return
     if (!confirm('Delete this comment?')) return
 
     try {
@@ -159,7 +175,7 @@ export default function BlogDetail() {
         {
           method: 'DELETE',
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       )
@@ -172,7 +188,8 @@ export default function BlogDetail() {
 
   // Pin/unpin comment
   const handlePinComment = async (comment: Comment) => {
-    if (!accessToken) return
+    const token = getLocalToken()
+    if (!token) return
 
     try {
       const res = await fetch(
@@ -181,7 +198,7 @@ export default function BlogDetail() {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token}`,
             Prefer: 'return=representation',
           },
           body: JSON.stringify({ pinned: !comment.pinned }),

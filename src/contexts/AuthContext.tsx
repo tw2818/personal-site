@@ -68,13 +68,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(fakeUser)
             setLoading(false)
           } catch {
-            // Token corrupted — try supabase to refresh via refresh token
-            const { data } = await supabase.auth.getSession()
-            if (!cancelled && data?.session) {
-              setSession(data.session)
-              setUser(data.session.user)
-              setAccessToken(data.session.access_token)
-            } else if (!cancelled) {
+            // Token corrupted — do NOT call getSession() (hangs due to deadlock bug).
+            // Just log out gracefully and continue without auth.
+            if (!cancelled) {
               setSession(null)
               setUser(null)
               setAccessToken(null)
