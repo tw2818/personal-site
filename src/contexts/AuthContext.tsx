@@ -16,6 +16,38 @@ const AuthContext = createContext<AuthContextType>({
   accessToken: null,
 })
 
+interface JWTPayload {
+  sub: string
+  email: string
+  exp?: number
+  user_metadata?: Record<string, unknown>
+}
+
+function isValidJWT(token: string): boolean {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return false
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))) as JWTPayload
+    if (!payload.sub || !payload.email) return false
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return false
+    return true
+  } catch {
+    return false
+  }
+}
+
+function decodeJWT(token: string): JWTPayload | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payloadStr = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = payloadStr + '=='.slice(0, (4 - payloadStr.length % 4) % 4)
+    return JSON.parse(atob(padded)) as JWTPayload
+  } catch {
+    return null
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -25,16 +57,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false
 
-    // Read session from localStorage directly - avoids supabase JS getSession() hang
     const readLocalSession = () => {
       try {
         const raw = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
-        if (raw) {
-          const parsed = JSON.parse(raw)
-          return parsed.access_token || null
-        }
-      } catch {}
-      return null
+        if (!raw) return null
+        const parsed = JSON.parse(raw)
+        return parsed.access_token || null
+      } catch {
+        return null
+      }
     }
 
     const initAuth = async () => {
@@ -44,7 +75,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (code) {
           window.history.replaceState({}, '', window.location.pathname)
-          // Use .then() instead of await so this resolves before useEffect cleanup fires
           ;(supabase.auth as any).exchangeCodeForSession(code)
             .then(({ data, error }: any) => {
               if (error) {
@@ -77,44 +107,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
 
-
-        // Read token from localStorage immediately (sync, no hang)
         const localToken = readLocalSession()
         if (localToken) {
-          // Decode JWT using URL-safe base64 (Supabase uses -_ instead of +/)
-          try {
-            const base64 = localToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-            const padded = base64 + '=='.slice(0, (4 - base64.length % 4) % 4)
-            const payload = JSON.parse(atob(padded))
-            const fakeUser = { id: payload.sub, email: payload.email, user_metadata: payload.user_metadata || {} } as User
-            setAccessToken(localToken)
-            setUser(fakeUser)
-            setLoading(false)
-          } catch {
-            // Token corrupted — do NOT call getSession() (hangs due to deadlock bug).
-            // Just log out gracefully and continue without auth.
+          if (!isValidJWT(localToken)) {
+            localStorage.removeItem('sb-osteeuwotaywuqsztipz-auth-token')
             if (!cancelled) {
               setSession(null)
               setUser(null)
               setAccessToken(null)
               setLoading(false)
             }
+            return
+          }
+          try {
+            const payload = decodeJWT(localToken)
+            if (!payload) throw new Error('Invalid JWT payload')
+            const fakeUser = { id: payload.sub, email: payload.email, user_metadata: payload.user_metadata || {} } as User
+            setAccessToken(localToken)
+            setUser(fakeUser)
+          } catch {
+            localStorage.removeItem('sb-osteeuwotaywuqsztipz-auth-token')
+            if (!cancelled) {
+              setSession(null)
+              setUser(null)
+              setAccessToken(null)
+              setLoading(false)
+            }
+            return
           }
         } else {
           if (!cancelled) {
             setSession(null)
             setUser(null)
             setAccessToken(null)
-            setLoading(false)
           }
         }
+        if (!cancelled) setLoading(false)
       } catch (err) {
         console.error('Auth init error:', err)
         if (!cancelled) {
           setSession(null)
           setUser(null)
           setAccessToken(null)
-          setLoading(false)
         }
       }
     }
@@ -132,15 +166,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             github: user.user_metadata?.user_name || '',
           })
         }
-      } catch {}
+      } catch {
+        // Silently fail - profile creation is best effort
+      }
     }
 
     initAuth()
 
-    // Safety timeout
     const timeout = setTimeout(() => { if (!cancelled) setLoading(false) }, 8000)
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (cancelled) return
       setSession(session)

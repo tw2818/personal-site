@@ -25,7 +25,7 @@ const refreshToken = async (): Promise<string | null> => {
     const { refresh_token } = JSON.parse(raw)
     if (!refresh_token) return null
     const res = await fetch(
-      'https://osteeuwotaywuqsztipz.supabase.co/auth/v1/token?grant_type=refresh_token',
+      `${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY },

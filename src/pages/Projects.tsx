@@ -2,9 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
-import { ANON_KEY, ADMIN_USER } from '../lib/config'
-
-const SUPABASE_URL = 'https://osteeuwotaywuqsztipz.supabase.co'
+import { SUPABASE_URL, ANON_KEY, ADMIN_USER } from '../lib/config'
 
 function TiltCard({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   const ref = useRef<HTMLDivElement>(null)
