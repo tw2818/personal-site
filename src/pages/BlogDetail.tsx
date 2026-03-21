@@ -419,27 +419,30 @@ export default function BlogDetail() {
         gap: '1rem',
       }}>
         {/* Back button */}
-        <button
+        <motion.button
           onClick={() => navigate(-1)}
+          whileHover={{ x: -4, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.3rem',
-            background: 'transparent',
-            border: 'none',
+            gap: '0.5rem',
+            background: 'rgba(var(--bg-rgb), 0.12)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid var(--border)',
+            borderRadius: 10,
             color: 'var(--text-secondary)',
             cursor: 'pointer',
-            fontSize: '0.8rem',
-            padding: '0.3rem 0',
+            fontSize: '0.85rem',
+            padding: '0.5rem 1rem',
             transition: 'all 0.2s',
             width: '100%',
             justifyContent: 'flex-start',
           }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)' }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)' }}
         >
-          ← 返回
-        </button>
+          <span style={{ transition: 'transform 0.2s' }}>←</span> 返回
+        </motion.button>
 
         {headings.length > 0 && (
           <>
