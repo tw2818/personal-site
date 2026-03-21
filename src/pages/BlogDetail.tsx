@@ -333,7 +333,7 @@ export default function BlogDetail() {
 
   return (
     <div className="page">
-      <div className="section" style={{ maxWidth: 720 }}>
+      <div style={{ maxWidth: 760, margin: "0 auto", padding: "2rem 2rem 4rem" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           {/* Back button */}
           <button
@@ -342,23 +342,26 @@ export default function BlogDetail() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.4rem',
-              background: 'none',
-              border: 'none',
+              background: 'rgba(var(--bg-rgb), 0.12)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid var(--border)',
+              borderRadius: 10,
               color: 'var(--text-secondary)',
               cursor: 'pointer',
-              fontSize: '0.9rem',
-              padding: '0.3rem 0',
-              marginBottom: '1.2rem',
-              transition: 'color 0.2s',
+              fontSize: '0.85rem',
+              padding: '0.4rem 0.9rem',
+              marginBottom: '1.5rem',
+              transition: 'all 0.2s',
             }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.22)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.12)' }}
           >
             ← 返回
           </button>
 
           {/* Blog Content Card */}
-          <div className="blog-detail-card">
+          <div>
             {blog.cover_url && (
               <img src={blog.cover_url} alt={blog.title} style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 12, marginBottom: '2rem' }} />
             )}
@@ -381,10 +384,10 @@ export default function BlogDetail() {
           </div>
 
           {/* Comments Section */}
-          <div style={{ marginTop: '0', paddingTop: '2.5rem', borderTop: '1px solid var(--border)' }}>
+          <div style={{ padding: "2.5rem", background: "rgba(var(--bg-rgb), 0.18)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: "1px solid var(--border)", borderRadius: 24, marginBottom: "4rem" }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
               <h2 style={{ fontSize: '1.3rem', fontWeight: 600 }}>评论</h2>
-              <span style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)', padding: '0.15rem 0.6rem', borderRadius: 12, fontSize: '0.8rem' }}>
+              <span style={{ background: 'rgba(var(--bg-rgb), 0.3)', color: 'var(--text-secondary)', padding: '0.15rem 0.6rem', borderRadius: 12, fontSize: '0.8rem' }}>
                 {comments.length}
               </span>
             </div>
@@ -445,7 +448,7 @@ export default function BlogDetail() {
                 </div>
               </form>
             ) : (
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2.5rem', padding: '1rem 1.25rem', background: 'var(--bg-secondary)', borderRadius: 12 }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2.5rem', padding: '1rem 1.25rem', background: 'rgba(var(--bg-rgb), 0.12)', border: '1px solid var(--border)', borderRadius: 12 }}>
                 登录后可以发表评论
               </p>
             )}
@@ -471,7 +474,7 @@ export default function BlogDetail() {
                       gap: '1rem',
                       padding: '1.25rem',
                       borderRadius: 16,
-                      background: comment.pinned ? 'rgba(0,113,227,0.06)' : 'var(--bg-secondary)',
+                      background: comment.pinned ? 'rgba(0,113,227,0.08)' : 'rgba(var(--bg-rgb), 0.12)',
                       border: comment.pinned ? '1px solid rgba(0,113,227,0.2)' : '1px solid transparent',
                       transition: 'box-shadow 0.2s',
                     }}
