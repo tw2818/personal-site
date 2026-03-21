@@ -108,23 +108,23 @@ export default function Profile() {
       const cy = rect.top + rect.height / 2
       const rx = (e.clientY - cy) / (rect.height / 2)
       const ry = (e.clientX - cx) / (rect.width / 2)
-      el.style.setProperty('--rx', rx.toFixed(3))
-      el.style.setProperty('--ry', ry.toFixed(3))
-      el.style.setProperty('--gx', `${(e.clientX - rect.left).toFixed(1)}px`)
-      el.style.setProperty('--gy', `${(e.clientY - rect.top).toFixed(1)}px`)
-      el.style.transform = `perspective(800px) rotateX(${-rx * 6}deg) rotateY(${ry * 6}deg)`
+      el.style.transform = `perspective(800px) rotateX(${-rx * 8}deg) rotateY(${ry * 8}deg)`
+    }
+    const onEnter = () => {
+      el.style.transition = 'transform 0.1s ease-out'
     }
     const onLeave = () => {
-      el.style.transform = ''
-      el.style.transition = 'transform 0.4s ease'
-      setTimeout(() => { if (el) el.style.transition = '' }, 400)
+      el.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)'
+      el.style.transition = 'transform 0.5s ease'
     }
 
     el.addEventListener('mousemove', onMove as EventListener)
-    el.addEventListener('mouseleave', onLeave)
+    el.addEventListener('mouseenter', onEnter as EventListener)
+    el.addEventListener('mouseleave', onLeave as EventListener)
     return () => {
       el.removeEventListener('mousemove', onMove as EventListener)
-      el.removeEventListener('mouseleave', onLeave)
+      el.removeEventListener('mouseenter', onEnter as EventListener)
+      el.removeEventListener('mouseleave', onLeave as EventListener)
     }
   }, [loading])
 
@@ -161,28 +161,10 @@ export default function Profile() {
               padding: '3rem 2.5rem',
               marginBottom: '2rem',
               position: 'relative',
-              overflow: 'hidden',
               transformStyle: 'preserve-3d',
               willChange: 'transform',
             }}
           >
-            {/* Glow effect */}
-            <div
-              style={{
-                position: 'absolute',
-                width: 300,
-                height: 300,
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(0,113,227,0.12) 0%, transparent 70%)',
-                left: 'var(--gx, 0px)',
-                top: 'var(--gy, 0px)',
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'none',
-                zIndex: 0,
-                transition: 'left 0.08s linear, top 0.08s linear',
-              }}
-            />
-
             {/* Avatar */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
