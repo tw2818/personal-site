@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useMotionValue, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { SUPABASE_URL, ANON_KEY, ADMIN_USER } from '../lib/config'
 import { supabase } from '../lib/supabase'
@@ -55,31 +55,6 @@ export default function Profile() {
   const [projectCount, setProjectCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const cardRef = useRef<HTMLDivElement>(null)
-  const avatarRef = useRef<HTMLDivElement>(null)
-  const glowX = useMotionValue(0)
-  const glowY = useMotionValue(0)
-  const avatarX = useMotionValue(0)
-  const avatarY = useMotionValue(0)
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = cardRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const cx = rect.left + rect.width / 2
-    const cy = rect.top + rect.height / 2
-    const dx = (e.clientX - cx) / (rect.width / 2)
-    const dy = (e.clientY - cy) / (rect.height / 2)
-    glowX.set(e.clientX - rect.left)
-    glowY.set(e.clientY - rect.top)
-    avatarX.set(dx * 12)
-    avatarY.set(dy * 12)
-  }
-
-  const handleMouseLeave = () => {
-    glowX.set(-999)
-    glowY.set(-999)
-    avatarX.set(0)
-    avatarY.set(0)
-  }
 
   useEffect(() => {
     let cancelled = false
@@ -121,6 +96,37 @@ export default function Profile() {
     }
   }, [user])
 
+  // Mouse tilt effect via direct DOM manipulation
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el) return
+
+    const onMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect()
+      const cx = rect.left + rect.width / 2
+      const cy = rect.top + rect.height / 2
+      const rx = (e.clientY - cy) / (rect.height / 2)
+      const ry = (e.clientX - cx) / (rect.width / 2)
+      el.style.setProperty('--rx', rx.toFixed(3))
+      el.style.setProperty('--ry', ry.toFixed(3))
+      el.style.setProperty('--gx', (e.clientX - rect.left).toFixed(1))
+      el.style.setProperty('--gy', (e.clientY - rect.top).toFixed(1))
+      el.style.transform = `perspective(800px) rotateX(${-rx * 6}deg) rotateY(${ry * 6}deg)`
+    }
+    const onLeave = () => {
+      el.style.transform = ''
+      el.style.transition = 'transform 0.4s ease'
+      setTimeout(() => { if (el) el.style.transition = '' }, 400)
+    }
+
+    el.addEventListener('mousemove', onMove as EventListener)
+    el.addEventListener('mouseleave', onLeave)
+    return () => {
+      el.removeEventListener('mousemove', onMove as EventListener)
+      el.removeEventListener('mouseleave', onLeave)
+    }
+  }, [loading])
+
 
   if (loading) {
     return (
@@ -135,17 +141,15 @@ export default function Profile() {
 
   return (
     <div className="page">
-      {/* Hero section - centered glass card with mouse tilt */}
+      {/* Hero section - centered glass card with CSS mouse tilt */}
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '4rem 2rem 3rem' }}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
         >
-          <motion.div
+          <div
             ref={cardRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
             style={{
               textAlign: 'center',
               background: 'rgba(var(--bg-rgb), 0.18)',
@@ -157,121 +161,112 @@ export default function Profile() {
               marginBottom: '2rem',
               position: 'relative',
               overflow: 'hidden',
-              rotateX: useTransform(avatarY, [-1, 1], [-6, 6]),
-              rotateY: useTransform(avatarX, [-1, 1], [6, -6]),
               transformStyle: 'preserve-3d',
-              perspective: 800,
-            }}
-            transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-          >
-          {/* Glow effect following mouse */}
-          <motion.div
-            style={{
-              position: 'absolute',
-              width: 300,
-              height: 300,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(0,113,227,0.12) 0%, transparent 70%)',
-              left: useTransform(glowX, v => v - 150),
-              top: useTransform(glowY, v => v - 150),
-              pointerEvents: 'none',
-              zIndex: 0,
-            }}
-          />
-
-          {/* Avatar with spring follow */}
-          <motion.div
-            ref={avatarRef}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            style={{
-              width: 120,
-              height: 120,
-              borderRadius: '50%',
-              margin: '0 auto 1.5rem',
-              border: '3px solid var(--border)',
-              overflow: 'hidden',
-              position: 'relative',
-              zIndex: 1,
-              translateX: useTransform(avatarX, [-1, 1], [-8, 8]),
-              translateY: useTransform(avatarY, [-1, 1], [-8, 8]),
+              willChange: 'transform',
             }}
           >
-            <img
-              src={avatar}
-              alt="avatar"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            {/* Glow effect */}
+            <div
+              style={{
+                position: 'absolute',
+                width: 300,
+                height: 300,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(0,113,227,0.12) 0%, transparent 70%)',
+                left: 'var(--gx, 50%)',
+                top: 'var(--gy, 50%)',
+                transform: 'translate(var(--gx, 0), var(--gy, 0))',
+                pointerEvents: 'none',
+                zIndex: 0,
+                transition: 'left 0.05s linear, top 0.05s linear',
+              }}
             />
-          </motion.div>
 
-          {/* Name */}
-          <motion.h1
-            style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '0.6rem', color: 'var(--text)', position: 'relative', zIndex: 1 }}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.5 }}
-          >
-            {name}
-          </motion.h1>
-          {/* Name */}
-          <motion.h1
-            style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '0.6rem', color: 'var(--text)' }}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.5 }}
-          >
-            {name}
-          </motion.h1>
-          {/* Bio */}
-          <motion.p
-            style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '2rem', maxWidth: 480, margin: '0 auto 2rem' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.25, duration: 0.4 }}
-          >
-            {profile?.bio || '这个人很懒，什么都没写'}
-          </motion.p>
-          {/* Social links */}
-          <motion.div
-            style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: user ? '1.5rem' : 0 }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35, duration: 0.4 }}
-          >
-            {profile?.github && (
-              <a href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer" className="social-link"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem', textDecoration: 'none', transition: 'all 0.2s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)'; e.currentTarget.style.transform = '' }}
-              >🐙 GitHub</a>
-            )}
-            {profile?.bilibili && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem' }}>📺 {profile.bilibili}</span>
-            )}
-            {profile?.twitter && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem' }}>🐦 {profile.twitter}</span>
-            )}
-            {profile?.xiaohongshu && (
-              <a href={profile.xiaohongshu} target="_blank" rel="noreferrer" className="social-link"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem', textDecoration: 'none', transition: 'all 0.2s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)'; e.currentTarget.style.transform = '' }}
-              >📕 小红书</a>
-            )}
-          </motion.div>
-          {user && (
+            {/* Avatar */}
             <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: '50%',
+                margin: '0 auto 1.5rem',
+                border: '3px solid var(--border)',
+                overflow: 'hidden',
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              <img
+                src={avatar}
+                alt="avatar"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </motion.div>
+
+            {/* Name */}
+            <motion.h1
+              style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '0.6rem', color: 'var(--text)', position: 'relative', zIndex: 1 }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.5 }}
+            >
+              {name}
+            </motion.h1>
+
+            {/* Bio */}
+            <motion.p
+              style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '2rem', maxWidth: 480, margin: '0 auto 2rem', position: 'relative', zIndex: 1 }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.45, duration: 0.3 }}
+              transition={{ delay: 0.25, duration: 0.4 }}
             >
-              <Link to="/admin"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.2rem', background: 'var(--accent)', border: 'none', borderRadius: 10, color: '#fff', fontSize: '0.88rem', textDecoration: 'none', fontWeight: 500 }}
-              >✏️ 编辑资料</Link>
+              {profile?.bio || '这个人很懒，什么都没写'}
+            </motion.p>
+
+            {/* Social links */}
+            <motion.div
+              style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: user ? '1.5rem' : 0, position: 'relative', zIndex: 1 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.4 }}
+            >
+              {profile?.github && (
+                <a href={`https://github.com/${profile.github}`} target="_blank" rel="noreferrer" className="social-link"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem', textDecoration: 'none', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)'; e.currentTarget.style.transform = '' }}
+                >🐙 GitHub</a>
+              )}
+              {profile?.bilibili && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem' }}>📺 {profile.bilibili}</span>
+              )}
+              {profile?.twitter && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem' }}>🐦 {profile.twitter}</span>
+              )}
+              {profile?.xiaohongshu && (
+                <a href={profile.xiaohongshu} target="_blank" rel="noreferrer" className="social-link"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'rgba(var(--bg-rgb), 0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)', fontSize: '0.88rem', textDecoration: 'none', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.25)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.15)'; e.currentTarget.style.transform = '' }}
+                >📕 小红书</a>
+              )}
             </motion.div>
-          )}
-        </motion.div>
+
+            {user && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.45, duration: 0.3 }}
+                style={{ position: 'relative', zIndex: 1 }}
+              >
+                <Link to="/admin"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.2rem', background: 'var(--accent)', border: 'none', borderRadius: 10, color: '#fff', fontSize: '0.88rem', textDecoration: 'none', fontWeight: 500 }}
+                >✏️ 编辑资料</Link>
+              </motion.div>
+            )}
+          </div>
         </motion.div>
       </div>
 
