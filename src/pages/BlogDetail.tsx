@@ -149,20 +149,6 @@ export default function BlogDetail() {
     e.preventDefault()
     if (!newComment.trim() || submitting) return
 
-    // DEBUG: check localStorage and log to console
-    const rawDebug = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
-    if (!rawDebug) {
-      setSubmitError('DEBUG: localStorage NULL — check DevTools console')
-      console.debug('[DEBUG] localStorage key NULL')
-    } else {
-      try {
-        const parsed = JSON.parse(rawDebug)
-        console.debug('[DEBUG] localStorage:', { has_access_token: !!parsed.access_token, has_refresh_token: !!parsed.refresh_token, at_prefix: parsed.access_token?.substring(0, 15) })
-      } catch {
-        console.debug('[DEBUG] localStorage parse error')
-      }
-    }
-
     // Get token — try refresh if no token found (handles expired tokens)
     let token = getLocalToken()
     if (!token) token = await refreshToken()
@@ -173,7 +159,6 @@ export default function BlogDetail() {
     setSubmitSuccess(false)
 
     const doInsert = async (t: string) => {
-      console.debug('[DEBUG] POST with token prefix:', t?.substring(0, 15), 'full_len:', t?.length)
       const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
         method: 'POST',
         headers: {
@@ -189,7 +174,6 @@ export default function BlogDetail() {
           content: newComment.trim(),
         }),
       })
-      console.debug('[DEBUG] POST response status:', res.status, res.statusText)
       return res
     }
 
@@ -197,18 +181,15 @@ export default function BlogDetail() {
       let res = await doInsert(token)
       // If expired token, refresh and retry once
       if (res.status === 401) {
-        console.debug('[DEBUG] Got 401, attempting token refresh')
         const newToken = await refreshToken()
-        console.debug('[DEBUG] refresh result:', newToken ? 'SUCCESS prefix=' + newToken.substring(0, 15) : 'FAILED')
         if (newToken) res = await doInsert(newToken)
       }
 
       if (!res.ok) {
         const errBody = await res.text()
-        console.debug('[DEBUG] POST error body:', errBody)
         let errObj: { message?: string } = {}
-        try { errObj = JSON.parse(errBody) } catch { /* ignore */ }
-        throw new Error(errObj.message || 'Failed to post comment')
+        try { errObj = JSON.parse(errBody) } catch { errObj = { message: errBody } }
+        throw new Error(errObj.message || `评论失败 (${res.status})`)
       }
 
       const created = await res.json()
