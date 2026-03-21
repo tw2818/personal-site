@@ -44,36 +44,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (code) {
           window.history.replaceState({}, '', window.location.pathname)
-          try {
-            const { data, error } = await (supabase.auth as any).exchangeCodeForSession(code)
-            if (error) {
-              console.error('OAuth code exchange error:', error)
+          // Use .then() instead of await so this resolves before useEffect cleanup fires
+          ;(supabase.auth as any).exchangeCodeForSession(code)
+            .then(({ data, error }: any) => {
+              if (error) {
+                console.error('OAuth code exchange error:', error)
+                if (!cancelled) setLoading(false)
+                return
+              }
+              if (data?.session) {
+                localStorage.setItem('sb-osteeuwotaywuqsztipz-auth-token', JSON.stringify({
+                  access_token: data.session.access_token,
+                  refresh_token: data.session.refresh_token || '',
+                  expires_at: Math.floor(Date.now() / 1000) + 3600,
+                  expires_in: 3600,
+                  token_type: 'bearer',
+                  user: data.session.user,
+                }))
+                setSession(data.session)
+                setUser(data.session.user)
+                setAccessToken(data.session.access_token)
+                ensureProfile(data.session.user)
+                setTimeout(() => { window.location.replace('/') }, 50)
+                return
+              }
               if (!cancelled) setLoading(false)
-              return
-            }
-            if (data?.session) {
-              // Ensure session is saved to localStorage before redirect
-              // so it's available on the next page load
-              localStorage.setItem('sb-osteeuwotaywuqsztipz-auth-token', JSON.stringify({
-                access_token: data.session.access_token,
-                refresh_token: data.session.refresh_token || '',
-                expires_at: Math.floor(Date.now() / 1000) + 3600,
-                expires_in: 3600,
-                token_type: 'bearer',
-                user: data.session.user,
-              }))
-              setSession(data.session)
-              setUser(data.session.user)
-              setAccessToken(data.session.access_token)
-              ensureProfile(data.session.user)
-              window.location.href = '/'
-              return
-            }
-          } catch (err) {
-            console.error('OAuth exchange thrown:', err)
-          }
-          if (!cancelled) setLoading(false)
+            })
+            .catch((err: any) => {
+              console.error('OAuth exchange thrown:', err)
+              if (!cancelled) setLoading(false)
+            })
+          return
         }
+
 
         // Read token from localStorage immediately (sync, no hang)
         const localToken = readLocalSession()
