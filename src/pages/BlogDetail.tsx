@@ -206,8 +206,9 @@ export default function BlogDetail() {
       if (!res.ok) {
         const errBody = await res.text()
         console.debug('[DEBUG] POST error body:', errBody)
-        const err = JSON.parse(errBody).catch(() => ({}))
-        throw new Error(err.message || 'Failed to post comment')
+        let errObj: { message?: string } = {}
+        try { errObj = JSON.parse(errBody) } catch { /* ignore */ }
+        throw new Error(errObj.message || 'Failed to post comment')
       }
 
       const created = await res.json()

@@ -66,28 +66,8 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="page">
-        <div className="profile-header">
-          <div className="skeleton-avatar" />
-          <div className="skeleton-title" />
-          <div className="skeleton-text skeleton-text--short" />
-          <div className="skeleton-text skeleton-text--medium" />
-          <div className="skeleton-buttons">
-            <div className="skeleton-btn" />
-            <div className="skeleton-btn" />
-          </div>
-        </div>
-        <div className="section">
-          <div className="card-grid">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="card skeleton-card">
-                <div className="skeleton-icon" />
-                <div className="skeleton-text skeleton-text--short" />
-                <div className="skeleton-text skeleton-text--long" />
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className="page" style={{ textAlign: 'center', padding: '4rem' }}>
+        加载中...
       </div>
     )
   }
