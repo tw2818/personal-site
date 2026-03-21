@@ -190,7 +190,7 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
               onClick={() => removeTag(tag.slug)}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(0,0,0,0.5)', padding: '0 2px', fontSize: '1rem', fontWeight: 700,
+                color: 'var(--text-secondary)', padding: '0 2px', fontSize: '1rem', fontWeight: 700,
                 lineHeight: 1, marginLeft: '0.1rem',
               }}
             >

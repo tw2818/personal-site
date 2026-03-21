@@ -209,7 +209,7 @@ export default function Tags() {
                     disabled={deletingId === tag.id}
                     style={{
                       background: 'none', border: 'none', cursor: deletingId === tag.id ? 'not-allowed' : 'pointer',
-                      color: tag.color, opacity: 0.6, padding: '0 0 0 0.25rem', fontSize: '0.8rem',
+                      color: 'var(--text-secondary)', opacity: 1, padding: '0 2px', fontSize: '1rem', fontWeight: 700,
                       display: 'flex', alignItems: 'center',
                     }}
                     title="删除标签"
