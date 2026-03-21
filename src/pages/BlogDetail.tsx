@@ -421,23 +421,22 @@ export default function BlogDetail() {
         {/* Back button */}
         <motion.button
           onClick={() => navigate(-1)}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          title="返回"
+          whileHover={{ x: -3 }}
+          whileTap={{ scale: 0.98 }}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
             padding: '0.5rem 1rem',
             borderRadius: 10,
-            background: 'var(--accent)',
-            border: 'none',
-            color: '#fff',
+            background: 'rgba(var(--bg-rgb), 0.12)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid var(--border)',
+            color: 'var(--text)',
             cursor: 'pointer',
             fontSize: '0.85rem',
             fontWeight: 500,
-            boxShadow: '0 2px 12px rgba(0,113,227,0.3)',
-            width: 'auto',
           }}
         >
           ← 返回
