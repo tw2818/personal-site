@@ -118,7 +118,8 @@ export default function BlogDetail() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          apikey: accessToken ? undefined : ANON_KEY,
+          Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
           Prefer: 'return=representation',
         },
         body: JSON.stringify({
