@@ -254,7 +254,7 @@ export default function Profile() {
       </div>
 
       {/* Stats row */}
-      <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 2rem 4rem', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+      <div className="stats-grid" style={{ maxWidth: 700, margin: '0 auto', padding: '0 2rem 4rem', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
         {[
           { label: '博客', value: blogCount, icon: '📝' },
           { label: '项目', value: projectCount, icon: '💼' },

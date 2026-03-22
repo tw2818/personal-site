@@ -406,7 +406,7 @@ export default function BlogDetail() {
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(var(--bg-rgb), 0.1)', zIndex: 199 }} />
 
       {/* Left TOC sidebar: fixed overlay, does not affect article width */}
-      <div style={{
+      <div className="blog-detail-sidebar" style={{
         position: 'fixed',
         left: '2rem',
         top: 80,
@@ -552,7 +552,7 @@ export default function BlogDetail() {
       </div>
 
       {/* Right column: floating info panel */}
-      <div style={{ position: 'fixed', top: 80, right: '2rem', width: 160, background: 'rgba(var(--bg-rgb), 0.14)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 50 }}>
+      <div className="blog-detail-info" style={{ position: 'fixed', top: 80, right: '2rem', width: 160, background: 'rgba(var(--bg-rgb), 0.14)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 50 }}>
         <div>
           <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>阅读</div>
           <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text)', lineHeight: 1 }}>{Math.max(1, Math.round(blog.content ? blog.content.split(/\s+/).length / 200 : 0))}</div>
