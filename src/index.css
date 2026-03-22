@@ -822,11 +822,11 @@ body::before {
   }
 
   .blog-detail-sidebar {
-    display: none;
+    display: none !important;
   }
 
   .blog-detail-info {
-    display: none;
+    display: none !important;
   }
 }
 
