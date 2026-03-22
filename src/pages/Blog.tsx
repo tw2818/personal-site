@@ -40,11 +40,7 @@ export default function Blog() {
     const timer = setTimeout(() => controller.abort(), 5000)
     try {
       const filter = tab === 'published' ? 'published=eq.true' : 'published=eq.false'
-      let url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&order=created_at.desc`
-      if (searchQuery.trim()) {
-        // Don't add server-side title filter — client-side filter handles both title and tag search
-        url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&order=created_at.desc`
-      }
+      const url = `${SUPABASE_URL}/rest/v1/blogs?${filter}&select=*&order=created_at.desc`
       const res = await fetch(url, {
         headers: {
           apikey: ANON_KEY,

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { SUPABASE_URL, ANON_KEY } from '../lib/config'
+import { SUPABASE_URL, ANON_KEY, ADMIN_USER } from '../lib/config'
 
 
 interface Tag {
@@ -17,7 +17,7 @@ interface Tag {
 export default function Tags() {
   const { user, accessToken } = useAuth()
   const navigate = useNavigate()
-  const isAdmin = user?.user_metadata?.user_name === 'tw2818'
+  const isAdmin = user?.user_metadata?.user_name === ADMIN_USER
   const [tags, setTags] = useState<Tag[]>([])
   const [loading, setLoading] = useState(true)
   const [newName, setNewName] = useState('')

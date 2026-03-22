@@ -11,6 +11,7 @@ export default function Settings() {
   const [github, setGithub] = useState('')
   const [bilibili, setBilibili] = useState('')
   const [twitter, setTwitter] = useState('')
+  const [xiaohongshu, setXiaohongshu] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarError, setAvatarError] = useState('')
@@ -42,6 +43,7 @@ export default function Settings() {
         setGithub(data.github || '')
         setBilibili(data.bilibili || '')
         setTwitter(data.twitter || '')
+        setXiaohongshu(data.xiaohongshu || '')
         setAvatarUrl(data.avatar_url || '')
       }
     })
@@ -54,7 +56,7 @@ export default function Settings() {
     setSaving(true)
     setSaved(false)
     await supabase.from('profiles').upsert({
-      id: user.id, email: user.email, nickname, bio, github, bilibili, twitter, avatar_url: avatarUrl,
+      id: user.id, email: user.email, nickname, bio, github, bilibili, twitter, xiaohongshu, avatar_url: avatarUrl,
       updated_at: new Date().toISOString(),
     })
     setSaving(false)
@@ -82,6 +84,7 @@ export default function Settings() {
             { label: 'GitHub 用户名', value: github, set: setGithub, placeholder: 'username' },
             { label: 'B站 ID', value: bilibili, set: setBilibili, placeholder: '' },
             { label: 'Twitter/X 用户名', value: twitter, set: setTwitter, placeholder: '' },
+            { label: '小红书链接', value: xiaohongshu, set: setXiaohongshu, placeholder: 'https://www.xiaohongshu.com/...' },
           ].map(f => (
             <div className="form-group" key={f.label}>
               <label>{f.label}</label>

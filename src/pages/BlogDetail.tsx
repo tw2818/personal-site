@@ -340,7 +340,7 @@ export default function BlogDetail() {
       }
       if (!res.ok) throw new Error('Failed to update comment')
       const updated = await res.json()
-      const newPinned = Array.isArray(updated) ? updated[0]?.pinned : false
+      const newPinned = Array.isArray(updated) && updated[0] != null ? Boolean(updated[0].pinned) : false
       setComments(prev => prev.map(c => c.id === comment.id ? { ...c, pinned: newPinned } : c))
     } catch (err: any) {
       alert(err.message || 'Failed to update comment')

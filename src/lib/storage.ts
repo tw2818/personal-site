@@ -30,12 +30,12 @@ export async function deleteImageIfUnused(imageUrl: string, currentBlogId?: stri
 
     // Check which blogs currently use this image
     // Check blogs
-    const blogsRes = await fetch(`${SUPABASE_URL}/rest/v1/blogs?select=id,cover_url&cover_url=ilike.%${encodeURIComponent(filename)}%`, {
+    const blogsRes = await fetch(`${SUPABASE_URL}/rest/v1/blogs?select=id,cover_url&cover_url=eq.${encodeURIComponent(filename)}`, {
       headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` },
     })
     const blogs: { id: string; cover_url: string }[] = await blogsRes.json()
     // Check projects
-    const projectsRes = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=id,cover_url&cover_url=ilike.%${encodeURIComponent(filename)}%`, {
+    const projectsRes = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=id,cover_url&cover_url=eq.${encodeURIComponent(filename)}`, {
       headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` },
     })
     const projects: { id: string; cover_url: string }[] = await projectsRes.json()
