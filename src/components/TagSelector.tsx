@@ -179,6 +179,8 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
           setInputValue('')
           setShowDropdown(false)
           cleanupUnusedTags()
+          // Notify other pages (e.g. /blog) that tags have changed
+          window.dispatchEvent(new CustomEvent('tags-updated'))
         } else {
           const err = await res.json()
           setInputError('创建失败: ' + (err.message || JSON.stringify(err)))
