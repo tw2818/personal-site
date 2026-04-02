@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { uploadImage } from '../lib/storage'
 import '@toast-ui/editor/dist/toastui-editor.css'
 
@@ -11,6 +11,7 @@ interface Props {
 export default function RichEditor({ value, onChange, placeholder }: Props) {
   const editorRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [isMounted, setIsMounted] = useState(false)
 
   // Apply theme class to editor container
   useEffect(() => {
@@ -22,58 +23,68 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
 
     applyTheme()
 
-    // Watch for theme changes via MutationObserver
     const observer = new MutationObserver((mutations) => {
       for (const m of mutations) {
         if (m.attributeName === 'data-theme') applyTheme()
       }
     })
     observer.observe(document.documentElement, { attributes: true })
-
     return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
-    import('@toast-ui/editor').then((mod) => {
-      const E = mod.Editor
-      if (containerRef.current && !editorRef.current) {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
-        if (isDark) containerRef.current.classList.add('toastui-editor-dark')
+    let cancelled = false
 
-        const instance = new E({
-          el: containerRef.current,
-          initialEditType: 'markdown',
-          previewStyle: 'vertical',
-          height: '500px',
-          placeholder: placeholder || '',
-          initialValue: value,
-          hooks: {
-            addImageBlobHook: async (blob: Blob, callback: (url: string, alt?: string) => void) => {
-              const file = new File([blob], 'image.png', { type: blob.type })
-              const url = await uploadImage(file)
-              if (url) callback(url, 'image')
-              else callback('', '')
-            },
+    import('@toast-ui/editor').then((mod) => {
+      if (cancelled || !containerRef.current || editorRef.current) return
+
+      const E = mod.Editor
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+      if (isDark) containerRef.current.classList.add('toastui-editor-dark')
+
+      const instance = new E({
+        el: containerRef.current,
+        initialEditType: 'markdown',
+        previewStyle: 'vertical',
+        height: '500px',
+        placeholder: placeholder || '',
+        initialValue: value || '',
+        hooks: {
+          addImageBlobHook: async (blob: Blob, callback: (url: string, alt?: string) => void) => {
+            const file = new File([blob], 'image.png', { type: blob.type })
+            const url = await uploadImage(file)
+            if (url) callback(url, 'image')
+            else callback('', '')
           },
-        })
-        instance.on('change', () => {
-          onChange(instance.getMarkdown())
-        })
-        editorRef.current = instance
-      }
+        },
+      })
+
+      instance.on('change', () => {
+        onChange(instance.getMarkdown())
+      })
+      editorRef.current = instance
+      setIsMounted(true)
     })
+
     return () => {
+      cancelled = true
+      // Guard destroy to prevent removeChild errors in React 18 StrictMode
       if (editorRef.current) {
-        editorRef.current.destroy()
+        try {
+          editorRef.current.destroy()
+        } catch (e) {
+          // Editor may already be destroyed by ToastUI internals
+        }
         editorRef.current = null
       }
+      setIsMounted(false)
     }
   }, [])
 
-  // Update content when value changes externally
+  // Update content when value changes externally (skip if we initiated the change)
   useEffect(() => {
     if (editorRef.current && value !== editorRef.current.getMarkdown()) {
-      editorRef.current.setMarkdown(value)
+      editorRef.current.setMarkdown(value || '')
     }
   }, [value])
 
