@@ -170,6 +170,7 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
       setCreating(true)
       const slug = slugify(inputTrimmed)
       const color = randomColor()
+      console.log('[TagSelector] POSTING tag:', { name: inputTrimmed, slug, color })
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/tags`, {
           method: 'POST',
