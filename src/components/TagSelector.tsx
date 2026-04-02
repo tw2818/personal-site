@@ -103,6 +103,15 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
 
   useEffect(() => {
     fetchTags()
+    // Listen for tags-updated from other tabs/pages
+    const handleTagsUpdated = () => fetchTags()
+    window.addEventListener('tags-updated', handleTagsUpdated)
+    const handleStorage = () => fetchTags()
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener('tags-updated', handleTagsUpdated)
+      window.removeEventListener('storage', handleStorage)
+    }
   }, [])
 
   // Close dropdown on outside click
@@ -181,6 +190,8 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
           cleanupUnusedTags()
           // Notify other pages (e.g. /blog) that tags have changed
           window.dispatchEvent(new CustomEvent('tags-updated'))
+          // Also update localStorage as a fallback sync mechanism
+          try { localStorage.setItem('tags-updated', Date.now().toString()) } catch {}
         } else {
           const err = await res.json()
           setInputError('创建失败: ' + (err.message || JSON.stringify(err)))
