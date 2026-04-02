@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { uploadImage } from '../lib/storage'
 import '@toast-ui/editor/dist/toastui-editor.css'
 
@@ -11,7 +11,6 @@ interface Props {
 export default function RichEditor({ value, onChange, placeholder }: Props) {
   const editorRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [isMounted, setIsMounted] = useState(false)
 
   // Apply theme class to editor container
   useEffect(() => {
@@ -63,7 +62,6 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
         onChange(instance.getMarkdown())
       })
       editorRef.current = instance
-      setIsMounted(true)
     })
 
     return () => {
@@ -77,7 +75,6 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
         }
         editorRef.current = null
       }
-      setIsMounted(false)
     }
   }, [])
 
