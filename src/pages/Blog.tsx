@@ -92,6 +92,10 @@ export default function Blog() {
 
   useEffect(() => {
     fetchTags()
+    // Refresh tags when page becomes visible (e.g., after creating a new tag on another page)
+    const handleVisibility = () => { if (document.visibilityState === 'visible') fetchTags() }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [])
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
