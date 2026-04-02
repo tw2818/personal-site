@@ -66,15 +66,11 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
 
     return () => {
       cancelled = true
-      // Guard destroy to prevent removeChild errors in React 18 StrictMode
-      if (editorRef.current) {
-        try {
-          editorRef.current.destroy()
-        } catch (e) {
-          // Editor may already be destroyed by ToastUI internals
-        }
-        editorRef.current = null
-      }
+      // Do NOT call destroy() here — ToastUI's removeChild during React 18
+      // StrictMode remount causes the removeChild error. Letting the container
+      // be removed by React naturally avoids the conflict. The editor's internal
+      // state is discarded with the component anyway.
+      editorRef.current = null
     }
   }, [])
 
