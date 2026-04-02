@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -27,6 +27,7 @@ export default function Blog() {
   const { user } = useAuth()
     const isAdmin = user?.user_metadata?.user_name === ADMIN_USER
   const navigate = useNavigate()
+  const location = useLocation()
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'published' | 'drafts'>('published')
@@ -106,7 +107,7 @@ export default function Blog() {
       window.removeEventListener('storage', handleStorage)
       clearInterval(poll)
     }
-  }, [])
+  }, [location])
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
