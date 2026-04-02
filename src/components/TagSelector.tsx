@@ -26,7 +26,20 @@ function randomColor() {
 }
 
 function slugify(name: string) {
-  return name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  // Keep Chinese characters, transliterate rest
+  const trimmed = name.trim()
+  const chinese = trimmed.match(/[\u4e00-\u9fff]/g) || []
+  const ascii = trimmed
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+  // If there's Chinese, prepend a short hash of the ascii part to keep uniqueness
+  if (chinese.length > 0 && ascii) {
+    return chinese.join('') + '-' + ascii
+  } else if (chinese.length > 0) {
+    return chinese.join('')
+  }
+  return ascii
 }
 
 export default function TagSelector({ value, onChange, accessToken }: TagSelectorProps) {
