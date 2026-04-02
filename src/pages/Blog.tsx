@@ -96,13 +96,15 @@ export default function Blog() {
     const handleVisibility = () => { if (document.visibilityState === 'visible') fetchTags() }
     document.addEventListener('visibilitychange', handleVisibility)
     window.addEventListener('tags-updated', fetchTags)
-    // Cross-tab fallback: listen for localStorage changes
     const handleStorage = () => fetchTags()
     window.addEventListener('storage', handleStorage)
+    // Poll every 5s as reliable fallback for tag sync
+    const poll = setInterval(fetchTags, 5000)
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility)
       window.removeEventListener('tags-updated', fetchTags)
       window.removeEventListener('storage', handleStorage)
+      clearInterval(poll)
     }
   }, [])
 
