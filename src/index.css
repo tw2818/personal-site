@@ -857,3 +857,8 @@ body::before {
   }
 }
 
+
+
+/* Hide scrollbar for horizontal tag strip */
+::-webkit-scrollbar { display: none; }
+

@@ -153,49 +153,90 @@ export default function Blog() {
 
         {/* Tag filter */}
         {tags.length > 0 && (
-          <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <motion.button
-              onClick={() => { setSelectedTag(''); setSearchQuery('') }}
-              whileTap={{ scale: 0.92 }}
-              style={{
-                padding: '0.35rem 0.9rem',
-                borderRadius: 980,
-                border: selectedTag === '' ? '1px solid var(--accent)' : '1px solid var(--border)',
-                background: selectedTag === '' ? 'var(--accent)' : 'var(--bg-secondary)',
-                color: selectedTag === '' ? '#fff' : 'var(--text-secondary)',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                fontWeight: 500,
-              }}
-            >
-              🏷️ 全部
-            </motion.button>
-            {tags.map(tag => (
+          <div style={{
+            marginBottom: '1.5rem',
+            position: 'relative',
+          }}>
+            {/* Fade edges for scroll hint */}
+            <div style={{
+              position: 'absolute', left: 0, top: 0, bottom: 0,
+              width: 20, background: 'linear-gradient(to right, var(--bg), transparent)',
+              pointerEvents: 'none', zIndex: 1,
+              display: tags.length > 8 ? 'block' : 'none',
+            }} />
+            <div style={{
+              display: 'flex',
+              gap: '0.5rem',
+              overflowX: 'auto',
+              paddingBottom: '0.5rem',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}>
+              {/* All button */}
               <motion.button
-                key={tag.id}
-                onClick={() => {
-                  setSelectedTag(tag.slug)
-                  setSearchQuery(tag.slug)
-                }}
-                whileTap={{ scale: 0.92 }}
-                animate={selectedTag === tag.slug ? { scale: [1, 1.08, 1] } : { scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                onClick={() => { setSelectedTag(''); setSearchQuery('') }}
+                whileTap={{ scale: 0.95 }}
                 style={{
-                  padding: '0.35rem 0.9rem',
-                  borderRadius: 980,
-                  border: selectedTag === tag.slug ? '1px solid var(--accent)' : '1px solid var(--border)',
-                  background: selectedTag === tag.slug ? 'var(--accent)' : 'var(--bg-secondary)',
-                  color: selectedTag === tag.slug ? '#fff' : 'var(--text-secondary)',
+                  padding: '0.3rem 0.9rem',
+                  borderRadius: 999,
+                  border: '1px solid var(--border)',
+                  background: selectedTag === '' ? 'var(--text)' : 'var(--bg-secondary)',
+                  color: selectedTag === '' ? 'var(--bg)' : 'var(--text-secondary)',
                   fontSize: '0.8rem',
                   cursor: 'pointer',
+                  fontWeight: selectedTag === '' ? 600 : 400,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                   transition: 'all 0.2s',
-                  fontWeight: 500,
                 }}
               >
-                {tag.name}
+                全部
               </motion.button>
-            ))}
+
+              {/* Tag buttons - each uses its own color */}
+              {tags.map(tag => {
+                const isSelected = selectedTag === tag.slug
+                return (
+                  <motion.button
+                    key={tag.id}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedTag('')
+                        setSearchQuery('')
+                      } else {
+                        setSelectedTag(tag.slug)
+                        setSearchQuery(tag.slug)
+                      }
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: 999,
+                      border: `1.5px solid ${isSelected ? tag.color : 'var(--border)'}`,
+                      background: isSelected ? tag.color + '18' : 'var(--bg-secondary)',
+                      color: isSelected ? tag.color : 'var(--text-secondary)',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      fontWeight: isSelected ? 600 : 400,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                    }}
+                  >
+                    <span style={{
+                      width: 7, height: 7, borderRadius: '50%',
+                      background: tag.color,
+                      flexShrink: 0,
+                      opacity: isSelected ? 1 : 0.5,
+                    }} />
+                    {tag.name}
+                  </motion.button>
+                )
+              })}
+            </div>
           </div>
         )}
 
