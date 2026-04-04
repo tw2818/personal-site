@@ -34,7 +34,7 @@ export default function Settings() {
 
   useEffect(() => {
     if (!user) return
-    setNickname(user.user_metadata?.full_name || '')
+    setNickname(user.user_metadata?.nickname || user.user_metadata?.full_name || user.user_metadata?.preferred_username || user.user_metadata?.user_name || '')
     setAvatarUrl(user.user_metadata?.avatar_url || '')
     supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => {
       if (data) {

@@ -675,7 +675,7 @@ export default function BlogDetail() {
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{comment.nickname || '匿名用户'}</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{comment.nickname ? String(comment.nickname).replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' })[c] || c) : '匿名用户'}</span>
                         {comment.pinned && (
                           <span style={{ background: 'var(--accent)', color: '#fff', padding: '0.1rem 0.5rem', borderRadius: 6, fontSize: '0.7rem', fontWeight: 500 }}>
                             置顶

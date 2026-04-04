@@ -105,7 +105,9 @@ export default function EditBlog() {
           headers: { 'Authorization': 'Bearer ' + token, 'apikey': ANON_KEY },
         })
       }
-    } catch {}
+    } catch (err) {
+      console.error('EditBlog: cleanupUnusedTags failed:', err)
+    }
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -123,7 +125,7 @@ export default function EditBlog() {
     )
     await cleanupUnusedTags()
     setSaving(false)
-    cleanupOrphanImages()
+    await cleanupOrphanImages()
     navigate('/blog')
   }
 

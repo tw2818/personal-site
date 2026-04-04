@@ -8,7 +8,7 @@ import RichEditor from '../components/RichEditor'
 import TagSelector from '../components/TagSelector'
 
 export default function NewBlog() {
-  const { user } = useAuth()
+  const { user, accessToken } = useAuth()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -62,7 +62,7 @@ export default function NewBlog() {
           <div className="form-group"><label>正文 *</label><RichEditor value={content} onChange={setContent} /></div>
           <div className="form-group">
             <label>标签</label>
-            <TagSelector value={selectedTags} onChange={setSelectedTags}  />
+            <TagSelector value={selectedTags} onChange={setSelectedTags} accessToken={accessToken} />
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
             <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} />

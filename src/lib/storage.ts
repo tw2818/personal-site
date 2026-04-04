@@ -1,5 +1,14 @@
 import { supabase } from './supabase'
-import { SUPABASE_URL, ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from './config'
+import { SUPABASE_URL, ANON_KEY } from './config'
+
+function getLocalToken(): string | null {
+  try {
+    const raw = localStorage.getItem('sb-osteeuwotaywuqsztipz-auth-token')
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed.access_token || null
+  } catch { return null }
+}
 
 export async function uploadImage(file: File): Promise<string | null> {
   const ext = file.name.split('.').pop()
@@ -24,44 +33,44 @@ export async function uploadImage(file: File): Promise<string | null> {
 export async function deleteImageIfUnused(imageUrl: string, currentBlogId?: string): Promise<void> {
   if (!imageUrl) return
   try {
-    // Extract filename from URL: .../blog-images/filename.jpg
     const filename = imageUrl.split('/blog-images/')[1]
     if (!filename) return
 
-    // Check which blogs currently use this image
-    // Check blogs
     const blogsRes = await fetch(`${SUPABASE_URL}/rest/v1/blogs?select=id,cover_url&cover_url=eq.${encodeURIComponent(filename)}`, {
       headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` },
     })
     const blogs: { id: string; cover_url: string }[] = await blogsRes.json()
-    // Check projects
     const projectsRes = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=id,cover_url&cover_url=eq.${encodeURIComponent(filename)}`, {
       headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` },
     })
     const projects: { id: string; cover_url: string }[] = await projectsRes.json()
-    // Combine and filter out the current item (if updating)
     const stillUsed = [...blogs, ...projects].filter(item => !currentBlogId || item.id !== currentBlogId)
-    if (stillUsed.length > 0) return // Still referenced
+    if (stillUsed.length > 0) return
 
-    // Not used anywhere - delete from storage
-    await fetch(`${SUPABASE_URL}/storage/v1/object/blog-images/${encodeURIComponent(filename)}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-      },
-    })
-  } catch {}
+    const token = getLocalToken()
+    if (!token) {
+      console.error('deleteImageIfUnused: No auth token available')
+      return
+    }
+
+    const { error } = await supabase.storage
+      .from('blog-images')
+      .remove([filename])
+
+    if (error) {
+      console.error('deleteImageIfUnused: Failed to delete image:', error)
+    }
+  } catch (err) {
+    console.error('deleteImageIfUnused: Unexpected error:', err)
+  }
 }
 
 export async function cleanupOrphanImages(): Promise<void> {
   try {
-    // Get all blog cover images currently in use
     const blogsRes = await fetch(`${SUPABASE_URL}/rest/v1/blogs?select=id,cover_url`, {
       headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` },
     })
     const blogs: { id: string; cover_url: string }[] = await blogsRes.json()
-    // Get all project cover images currently in use
     const projectsRes = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=id,cover_url`, {
       headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` },
     })
@@ -71,19 +80,34 @@ export async function cleanupOrphanImages(): Promise<void> {
       ...projects.map(p => p.cover_url?.split('/blog-images/')[1]),
     ].filter(Boolean))
 
-    // List all files in storage
-    const storageRes = await fetch(`${SUPABASE_URL}/storage/v1/object/blog-images/`, {
-      headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, 'apikey': SUPABASE_SERVICE_ROLE_KEY },
-    })
-    const files: { name: string }[] = await storageRes.json()
+    const storageRes = await supabase.storage
+      .from('blog-images')
+      .list()
+
+    if (storageRes.error) {
+      console.error('cleanupOrphanImages: Failed to list storage:', storageRes.error)
+      return
+    }
+
+    const files = storageRes.data?.filter(f => f.name) || []
     const toDelete = files.filter(f => f.name && !inUse.has(f.name))
 
-    for (const file of toDelete) {
-      await fetch(`${SUPABASE_URL}/storage/v1/object/blog-images/${encodeURIComponent(file.name)}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, 'apikey': SUPABASE_SERVICE_ROLE_KEY },
-      })
-    }
-  } catch {}
-}
+    if (toDelete.length === 0) return
 
+    const token = getLocalToken()
+    if (!token) {
+      console.error('cleanupOrphanImages: No auth token available')
+      return
+    }
+
+    const { error } = await supabase.storage
+      .from('blog-images')
+      .remove(toDelete.map(f => f.name))
+
+    if (error) {
+      console.error('cleanupOrphanImages: Failed to delete images:', error)
+    }
+  } catch (err) {
+    console.error('cleanupOrphanImages: Unexpected error:', err)
+  }
+}

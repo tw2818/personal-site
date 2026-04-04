@@ -61,13 +61,12 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
       })
       const data = await res.json()
       if (Array.isArray(data)) setAllTags(data)
-    } catch {
-      // silent fail
+    } catch (err) {
+      console.error('TagSelector: Failed to fetch tags:', err)
     } finally {
       setLoading(false)
     }
   }
-  // Cleanup orphan tags (usage_count=0) from DB - called after creating a new tag
   const cleanupUnusedTags = async () => {
     try {
       // Use the same token source as handleCreate (localStorage), not the accessToken prop
@@ -96,7 +95,9 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
           headers: { 'Authorization': 'Bearer ' + token, 'apikey': ANON_KEY },
         })
       }
-    } catch {}
+    } catch (err) {
+      console.error('TagSelector: cleanupUnusedTags failed:', err)
+    }
   }
 
 
@@ -192,7 +193,7 @@ export default function TagSelector({ value, onChange, accessToken }: TagSelecto
           // Notify other pages (e.g. /blog) that tags have changed
           window.dispatchEvent(new CustomEvent('tags-updated'))
           // Also update localStorage as a fallback sync mechanism
-          try { localStorage.setItem('tags-updated', Date.now().toString()) } catch {}
+          try { localStorage.setItem('tags-updated', Date.now().toString()) } catch (err) { console.error('TagSelector: localStorage sync failed:', err) }
         } else {
           const err = await res.json()
           setInputError('创建失败: ' + (err.message || JSON.stringify(err)))

@@ -500,7 +500,6 @@ textarea.form-input { resize: vertical; min-height: 120px; }
   background: rgba(var(--bg-rgb), 0.18); backdrop-filter: blur(14px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  border-radius: var(--radius);
 }
 .skeleton-item-date {
   width: 64px;

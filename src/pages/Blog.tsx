@@ -79,7 +79,7 @@ export default function Blog() {
     } else {
       fetchBlogs()
     }
-  }, [tab, searchQuery])
+  }, [tab, searchQuery, isAdmin])
 
   const fetchTags = async () => {
     try {
@@ -88,7 +88,9 @@ export default function Blog() {
       })
       const data = await res.json()
       if (Array.isArray(data)) setTags(data)
-    } catch {}
+    } catch (err) {
+      console.error('Blog: fetchTags failed:', err)
+    }
   }
 
   useEffect(() => {
